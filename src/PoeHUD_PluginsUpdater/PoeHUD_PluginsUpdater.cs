@@ -120,6 +120,9 @@ namespace PoeHUD_PluginsUpdater
         private void OpenOrClose()
         {
             if (!Settings.Enable) return;
+
+            RootButton.Instance.CloseRootMenu();
+
             if (InitOnce) return;
             InitOnce = true;
 
