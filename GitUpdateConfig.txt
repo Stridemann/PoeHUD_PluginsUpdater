@@ -1,0 +1,8 @@
+Owner: Stridemann
+Name: PoeHUD_PluginsUpdater
+Repository
+
+Ignore:
+src
+.gitignore
+README.md

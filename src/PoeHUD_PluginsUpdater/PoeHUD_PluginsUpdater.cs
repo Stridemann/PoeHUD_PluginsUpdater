@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -271,8 +272,8 @@ namespace PoeHUD_PluginsUpdater
 
         private async void CheckUpdates()
         {
-            var gitClient = new GitHubClient(new ProductHeaderValue("PoeHUD_PluginsUpdater"));
-            gitClient.Credentials = new Credentials(Settings.GitToken);
+            var gitClient = new GitHubClient(new ProductHeaderValue("PoeHUDPluginsUpdater"));
+            gitClient.Credentials = new Credentials(Settings.GitToken); 
 
             foreach (var plugin in AllPlugins)
             {
