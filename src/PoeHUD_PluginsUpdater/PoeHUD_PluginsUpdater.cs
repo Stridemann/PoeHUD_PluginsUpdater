@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -16,11 +13,14 @@ using PoeHUD.Hud.PluginExtension;
 using PoeHUD.Plugins;
 using SharpDX;
 using SharpDX.Direct3D9;
+using PoeHUD.Hud.UI;
 
 namespace PoeHUD_PluginsUpdater
 {
     public class PoeHUD_PluginsUpdater : BaseSettingsPlugin<PoeHUD_PluginsUpdater_Settings>
     {
+        public static Graphics UGraphics;
+
         public PoeHUD_PluginsUpdater()
         {
             PluginName = "PluginsUpdater";
@@ -29,26 +29,21 @@ namespace PoeHUD_PluginsUpdater
 
         public const string VersionFileName = "%PluginVersion.txt";
         public const string UpdateTempDir = "%PluginUpdate%";//Do not change this value. Otherwice this value in PoeHUD should be also changed.
-        private const string OPTION_OWNER = "Owner:";
-        private const string OPTION_REPONAME = "Name:";
-        private const string OPTION_RELEASE = "Release";
-        private const string OPTION_RELEASETAGREGEXFILTER = "Tag:";
-
-        private const string OPTION_REPOONLY = "Repository";
-        private const string OPTION_REPOBRANCH = "Branch:";
-        private const string OPTION_FILESIGNORE = "Ignore:";
+      
         private List<PluginToUpdate> AllPlugins = new List<PluginToUpdate>();
-        private bool bMouse_Click;
+   
 
         private bool bMouse_Drag;
 
         private RectangleF DrawRect;
 
         private bool InitOnce;
-        private Vector2 Mouse_ClickPos;
-        private Vector2 Mouse_DragDelta;
-        private Vector2 Mouse_Pos;
-        private Vector2 Mouse_StartDragPos;
+
+        public static bool bMouse_Click;
+        public static Vector2 Mouse_ClickPos;
+        public static Vector2 Mouse_DragDelta;
+        public static Vector2 Mouse_Pos;
+        public static Vector2 Mouse_StartDragPos;
 
         private int RepoFilesCheckedCount;
 
@@ -59,6 +54,7 @@ namespace PoeHUD_PluginsUpdater
 
         public override void Initialise()
         {
+            UGraphics = Graphics;
             Settings.Enable.Value = false;
             Settings.Enable.OnValueChanged += OpenOrClose;
             MenuPlugin.ExternalMouseClick = OnMouseEvent;
@@ -169,110 +165,10 @@ namespace PoeHUD_PluginsUpdater
             };
             AllPlugins.Add(plugVariant);
 
-            try
-            {
-                var gitConfigFilePath = Path.Combine(plugVariant.PluginDirectory, "GitUpdateConfig.txt");
-
-                if (File.Exists(gitConfigFilePath))
-                {
-                    var configLines = File.ReadAllLines(gitConfigFilePath);
-
-                    var handleIgnore = false;
-                    for (var i = 0; i < configLines.Length; i++)
-                    {
-                        var line = configLines[i];
-                        if (line.StartsWith("#")) continue;
-
-                        var spacelessLine = line.Replace(" ", "");
-                        if (spacelessLine.Replace("\r", "").Replace("\n", "").Length == 0) continue;
-
-                        if (handleIgnore)
-                        {
-                            plugVariant.IgnoredEntities.Add(line);
-                            continue;
-                        }
-                        if (spacelessLine == OPTION_FILESIGNORE)
-                        {
-                            handleIgnore = true;
-                            continue;
-                        }
-
-                        //Repository owner
-                        var ownerIndex = line.IndexOf(OPTION_OWNER);
-                        if (ownerIndex != -1)
-                        {
-                            plugVariant.RepoOwner = line.Substring(ownerIndex + OPTION_OWNER.Length);
-                            TrimName(ref plugVariant.RepoOwner);
-                            continue;
-                        }
-
-                        //Repository name
-                        var reposNameIndex = line.IndexOf(OPTION_REPONAME);
-                        if (reposNameIndex != -1)
-                        {
-                            plugVariant.RepoName = line.Substring(reposNameIndex + OPTION_REPONAME.Length);
-                            TrimName(ref plugVariant.RepoName);
-                            continue;
-                        }
-
-                        //Only from release
-                        if (spacelessLine == OPTION_RELEASE)
-                        {
-                            if (plugVariant.UpdateVariant != ePluginSourceOfUpdate.Undefined)
-                                LogMessage(
-                                    "PluginUpdater: " + plugVariant.PluginName +
-                                    ",  both update variants (Release and Commit) is not allowed. Check GitUpdateConfig. Current update variant is: " +
-                                    plugVariant.UpdateVariant, 10);
-                            else
-                                plugVariant.UpdateVariant = ePluginSourceOfUpdate.Release;
-                            continue;
-                        }
-
-                        //Only from repository
-                        if (spacelessLine == OPTION_REPOONLY)
-                        {
-                            if (plugVariant.UpdateVariant != ePluginSourceOfUpdate.Undefined)
-                                LogMessage(
-                                    "PluginUpdater: " + plugVariant.PluginName +
-                                    ",  both update variants (Release and Commit) is not allowed. Check GitUpdateConfig. Current update variant is: " +
-                                    plugVariant.UpdateVariant, 10);
-                            else
-                                plugVariant.UpdateVariant = ePluginSourceOfUpdate.RepoBranch;
-                            continue;
-                        }
-
-                        //Release tag regex filter
-                        var tagIndex = line.IndexOf(OPTION_RELEASETAGREGEXFILTER);
-                        if (tagIndex != -1)
-                        {
-                            plugVariant.ReleaseRegexTag = line.Substring(tagIndex + OPTION_RELEASETAGREGEXFILTER.Length);
-                            TrimName(ref plugVariant.ReleaseRegexTag);
-                            plugVariant.bCustomTag = true;
-                        }
-
-                        var branchNameIndex = line.IndexOf(OPTION_REPOBRANCH);
-                        if (branchNameIndex != -1)
-                        {
-                            plugVariant.BranchName = line.Substring(branchNameIndex + OPTION_REPOBRANCH.Length);
-                            TrimName(ref plugVariant.BranchName);
-                        }
-                    }
-
-                    plugVariant.bAllowCheckUpdate = plugVariant.RepoOwner != "-" && plugVariant.RepoName != "-";
-                }
-            }
-            catch
-            {
-                LogError("Error while parsing git update config for plugin: " + plugVariant.PluginName, 5);
-            }
+            GitConfigParser.Parse(plugVariant);
         }
 
-        private void TrimName(ref string name)
-        {
-            name = name.TrimEnd(' ');
-            name = name.TrimStart(' ');
-        }
-
+ 
         private async void CheckUpdates()
         {
             var gitClient = new GitHubClient(new ProductHeaderValue("PoeHUDPluginsUpdater"));
@@ -443,7 +339,7 @@ namespace PoeHUD_PluginsUpdater
 
                     if (File.Exists(localPath))
                     {
-                        var fileSha = GetGitObjectChecksum(localPath);
+                        var fileSha = UpdaterUtils.GetGitObjectChecksum(localPath);
 
                         if (fileSha != contentEntity.Sha)
                         {
@@ -491,7 +387,7 @@ namespace PoeHUD_PluginsUpdater
 
             DrawRect = new RectangleF(posX, posY, WindowWidth, WindowHeight);
 
-            DrawFrameBox(DrawRect, 2, Color.Black, Color.White);
+            UpdaterUtils.DrawFrameBox(DrawRect, 2, Color.Black, Color.White);
 
             var closeRect = DrawRect;
             closeRect.X += closeRect.Width - 25;
@@ -499,7 +395,7 @@ namespace PoeHUD_PluginsUpdater
             closeRect.Width = 20;
             closeRect.Height = 20;
 
-            if (DrawButton(closeRect, 1, new Color(20, 20, 20, 255), Color.White))
+            if (UpdaterUtils.DrawButton(closeRect, 1, new Color(20, 20, 20, 255), Color.White))
             {
                 Settings.Enable.Value = false;
             }
@@ -514,7 +410,7 @@ namespace PoeHUD_PluginsUpdater
 
             posY += 30;
 
-            foreach (var plug in AllPlugins)
+            foreach (var plug in AllPlugins.ToList())
             {
                 var pluginFrame = new RectangleF(posX + 5, posY, WindowWidth - 10, 26);
 
@@ -550,7 +446,7 @@ namespace PoeHUD_PluginsUpdater
                          plug.UpdateState == ePluginUpdateState.HasLowerUpdate ||
                          plug.UpdateState == ePluginUpdateState.UnknownUpdate)
                 {
-                    if (DrawButton(buttonRect, 1, new Color(50, 50, 50, 220), Color.White))
+                    if (UpdaterUtils.DrawButton(buttonRect, 1, new Color(50, 50, 50, 220), Color.White))
                     {
                         plug.UpdatePlugin();
                     }
@@ -587,42 +483,7 @@ namespace PoeHUD_PluginsUpdater
             bMouse_Click = false;
         }
 
-        private bool DrawButton(RectangleF rect, float borderWidth, Color boxColor, Color frameColor)
-        {
-            if (rect.Contains(Mouse_Pos))
-                boxColor = Color.Lerp(boxColor, Color.White, 0.4f);
 
-            DrawFrameBox(rect, borderWidth, boxColor, frameColor);
-            if (!bMouse_Click) return false;
-            return rect.Contains(Mouse_ClickPos);
-        }
-
-        private void DrawFrameBox(RectangleF rect, float borderWidth, Color boxColor, Color frameColor)
-        {
-            Graphics.DrawBox(rect, boxColor);
-            Graphics.DrawFrame(rect, borderWidth, frameColor);
-        }
-
-
-        private static string GetGitObjectChecksum(string file)
-        {
-            var bytes = File.ReadAllBytes(file);
-            var blobString = "blob " + bytes.Length + "\0";
-            var appendBytes = Encoding.Default.GetBytes(blobString);
-
-            var newArray = new byte[appendBytes.Length + bytes.Length];
-
-            Buffer.BlockCopy(appendBytes, 0, newArray, 0, appendBytes.Length);
-            Buffer.BlockCopy(bytes, 0, newArray, appendBytes.Length, bytes.Length);
-
-            var sha = new SHA1Managed();
-            var hash = sha.ComputeHash(newArray);
-            var stringBuilder = new StringBuilder();
-            foreach (var b in hash)
-            {
-                stringBuilder.AppendFormat("{0:x2}", b);
-            }
-            return stringBuilder.ToString();
-        }
+    
     }
 }

@@ -67,10 +67,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GitConfigParser.cs" />
     <Compile Include="PluginVariant.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PoeHUD_PluginsUpdater.cs" />
     <Compile Include="PoeHUD_PluginsUpdater_Settings.cs" />
+    <Compile Include="UpdaterUtils.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
