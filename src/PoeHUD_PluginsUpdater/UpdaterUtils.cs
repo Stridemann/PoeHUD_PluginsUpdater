@@ -3,6 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using SharpDX;
+using SharpDX.Direct3D9;
 
 namespace PoeHUD_PluginsUpdater
 {
@@ -27,6 +28,18 @@ namespace PoeHUD_PluginsUpdater
                 stringBuilder.AppendFormat("{0:x2}", b);
             }
             return stringBuilder.ToString();
+        }
+
+        public static bool DrawTextButton(RectangleF rect, string text, int textHeight, float borderWidth, Color boxColor, Color frameColor, Color textColor)
+        {
+            PoeHUD_PluginsUpdater.UGraphics.DrawText(text, textHeight, rect.Center, textColor, FontDrawFlags.VerticalCenter | FontDrawFlags.Center);
+
+            if (rect.Contains(PoeHUD_PluginsUpdater.Mouse_Pos))
+                boxColor = Color.Lerp(boxColor, Color.White, 0.4f);
+
+            DrawFrameBox(rect, borderWidth, boxColor, frameColor);
+            if (!PoeHUD_PluginsUpdater.bMouse_Click) return false;
+            return rect.Contains(PoeHUD_PluginsUpdater.Mouse_ClickPos);
         }
 
         public static bool DrawButton(RectangleF rect, float borderWidth, Color boxColor, Color frameColor)

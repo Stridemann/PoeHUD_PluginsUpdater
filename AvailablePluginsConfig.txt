@@ -1,0 +1,41 @@
+Plugin:PassiveSkillTreePlanter
+GitOwner:Stridemann
+GitName:PoE_PassiveSkillTreePlanter
+ConfigURL:https://raw.githubusercontent.com/Stridemann/PoE_PassiveSkillTreePlanter/master/GitUpdateConfig.txt
+Desctription: Highlighting points on passive skill tree from build url.
+
+Plugin:AutoQuit
+GitOwner:zaafar
+GitName:AutoQuit
+ConfigURL:Owner:zaafar$Name: AutoQuit$Repository$Ignore:$src$.gitignore$README.md$LICENSE
+Desctription: Logout on low health.
+
+Plugin:AutoFlaskManager
+GitOwner:Xcesius
+GitName:AutoFlaskManager
+ConfigURL:Owner:Xcesius$Name: AutoFlaskManager$Repository$Ignore:$src$.gitignore$README.md
+Desctription: Plugin for automatically using the flasks.
+
+Plugin:Stashie
+GitOwner:nymann
+GitName:Stashie
+ConfigURL:https://raw.githubusercontent.com/nymann/Stashie/master/GitUpdateConfig.txt
+Desctription: Displaying empty/filled cells of closed inventory with item images.
+
+Plugin:InventoryPreview
+GitOwner:zaafar
+GitName:poehud_inventorypreview
+ConfigURL:https://raw.githubusercontent.com/zaafar/poehud_inventorypreview/master/GitUpdateConfig.txt
+Desctription: Displaying empty/filled cells of closed inventory with item images.
+
+Plugin:MapsExchange
+GitOwner:zaafar
+GitName:poehud_mapsexchange
+ConfigURL:https://raw.githubusercontent.com/zaafar/poehud_mapsexchange/master/GitUpdateConfig.txt
+Desctription: Higlighting maps with same name in stash for vendor exchange.
+
+Plugin:FullRareSetManager
+GitOwner:Stridemann
+GitName:PoeHUD_FullRareSetManager
+ConfigURL:https://raw.githubusercontent.com/Stridemann/PoeHUD_FullRareSetManager/master/GitUpdateConfig.txt
+Desctription: Shows how much items you already have for Rare Set exchange.

@@ -67,6 +67,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AvailablePlugin.cs" />
+    <Compile Include="AvailablePluginsConfigParser.cs" />
     <Compile Include="GitConfigParser.cs" />
     <Compile Include="PluginVariant.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

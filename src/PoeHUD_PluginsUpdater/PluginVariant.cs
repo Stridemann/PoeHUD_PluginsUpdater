@@ -33,7 +33,7 @@ namespace PoeHUD_PluginsUpdater
         public List<FileToDownload> FilesToDownload = new List<FileToDownload>();
         public List<string> IgnoredEntities = new List<string>();
 
-        public string InstallProgress;
+        public string InstallProgress = "";
 
         public string LocalVersion = "Checking...";
         public string LocalTag = "";
@@ -77,15 +77,10 @@ namespace PoeHUD_PluginsUpdater
                     {
                         webClient.DownloadProgressChanged +=
                             (s, e) => { InstallProgress = "Downloading: " + e.ProgressPercentage + "%"; };
-                        /*
-                        webClient.DownloadFileCompleted += (s, e) =>
-                        {
-                            InstallProgress = "Download: Ok";
-                        };
-                        */
+
                         var downloadFile = FilesToDownload[0];
 
-                        var filename = downloadFile.Path; // Path.Combine(updateDirectory, downloadFile.Name);
+                        var filename = downloadFile.Path;
                         await webClient.DownloadFileTaskAsync(downloadFile.Url, downloadFile.Path);
 
                         InstallProgress = "Extracting zip...";

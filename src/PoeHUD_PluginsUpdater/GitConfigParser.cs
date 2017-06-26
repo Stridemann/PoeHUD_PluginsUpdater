@@ -22,7 +22,7 @@ namespace PoeHUD_PluginsUpdater
 {
     public sealed class GitConfigParser
     {
-        private const string ConfigFileName = "GitUpdateConfig.txt";
+        public const string ConfigFileName = "GitUpdateConfig.txt";
 
         private const string OPTION_OWNER = "Owner:";
         private const string OPTION_REPONAME = "Name:";

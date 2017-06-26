@@ -14,6 +14,7 @@ using PoeHUD.Plugins;
 using SharpDX;
 using SharpDX.Direct3D9;
 using PoeHUD.Hud.UI;
+using System.Net;
 
 namespace PoeHUD_PluginsUpdater
 {
@@ -29,16 +30,16 @@ namespace PoeHUD_PluginsUpdater
 
         public const string VersionFileName = "%PluginVersion.txt";
         public const string UpdateTempDir = "%PluginUpdate%";//Do not change this value. Otherwice this value in PoeHUD should be also changed.
-      
-        private List<PluginToUpdate> AllPlugins = new List<PluginToUpdate>();
-   
 
-        private bool bMouse_Drag;
+        private List<PluginToUpdate> AllPlugins = new List<PluginToUpdate>();
+
+        private UWindowTab CurrentWindowTab = UWindowTab.InstalledPlugins;
+
+        private List<AvailablePlugin> AllAvailablePlugins = null;
 
         private RectangleF DrawRect;
-
         private bool InitOnce;
-
+        private bool bMouse_Drag;
         public static bool bMouse_Click;
         public static Vector2 Mouse_ClickPos;
         public static Vector2 Mouse_DragDelta;
@@ -52,10 +53,16 @@ namespace PoeHUD_PluginsUpdater
 
         private float WindowHeight;
 
+        private GitHubClient gitClient;
+
         public override void Initialise()
         {
+            gitClient = new GitHubClient(new ProductHeaderValue("PoeHUDPluginsUpdater"));
+
             UGraphics = Graphics;
-            Settings.Enable.Value = false;
+            Settings.Enable.Value = false; //OpenOrClose();
+            AllAvailablePlugins = AvailablePluginsConfigParser.Parse(PluginDirectory);
+
             Settings.Enable.OnValueChanged += OpenOrClose;
             MenuPlugin.ExternalMouseClick = OnMouseEvent;
         }
@@ -129,6 +136,18 @@ namespace PoeHUD_PluginsUpdater
                 AddPlugin(plugin.PluginName, plugin.PluginDirectory);
             }
 
+            CheckAddPluginsByConfig();
+
+            AllPlugins = AllPlugins.OrderByDescending(x => x.UpdateVariant).ToList();
+
+            CheckUpdates();
+
+            //AllAvailablePlugins = AvailablePluginsConfigParser.Parse(PluginDirectory);
+        }
+
+        private PluginToUpdate CheckAddPluginsByConfig()
+        {
+            PluginToUpdate result = null;
 
             var PluginsDir = new DirectoryInfo("plugins");
             foreach (var pluginDirectoryInfo in PluginsDir.GetDirectories())
@@ -144,19 +163,14 @@ namespace PoeHUD_PluginsUpdater
                                     StringComparison.OrdinalIgnoreCase)))
                     {
                         var pluginFolderName = Path.GetFileName(pluginDirectoryInfo.FullName);
-                        AddPlugin(pluginFolderName, pluginDirectoryInfo.FullName);
+                        result = AddPlugin(pluginFolderName, pluginDirectoryInfo.FullName);
                     }
                 }
             }
-
-
-            AllPlugins = AllPlugins.OrderByDescending(x => x.UpdateVariant).ToList();
-
-            CheckUpdates();
+            return result;
         }
 
-
-        private void AddPlugin(string pluginName, string pluginDirectory)
+        private PluginToUpdate AddPlugin(string pluginName, string pluginDirectory)
         {
             var plugVariant = new PluginToUpdate
             {
@@ -164,24 +178,23 @@ namespace PoeHUD_PluginsUpdater
                 PluginDirectory = pluginDirectory
             };
             AllPlugins.Add(plugVariant);
-
             GitConfigParser.Parse(plugVariant);
+            return plugVariant;
         }
 
- 
+
         private async void CheckUpdates()
         {
-            var gitClient = new GitHubClient(new ProductHeaderValue("PoeHUDPluginsUpdater"));
-            gitClient.Credentials = new Credentials(Settings.GitToken); 
+            gitClient.Credentials = new Credentials(Settings.GitToken);
 
             foreach (var plugin in AllPlugins)
             {
-                await CheckPluginUpdate(plugin, gitClient);
+                await CheckPluginUpdate(plugin);
             }
         }
 
 
-        private async Task CheckPluginUpdate(PluginToUpdate plugin, GitHubClient gitClient)
+        private async Task CheckPluginUpdate(PluginToUpdate plugin)
         {
             plugin.LocalVersion = "Undefined";
             plugin.RemoteVersion = "Undefined";
@@ -195,7 +208,7 @@ namespace PoeHUD_PluginsUpdater
             {
                 var lovalVersionLines = File.ReadAllLines(versionFilePath);
                 plugin.LocalVersion = lovalVersionLines[0];
-                if(lovalVersionLines.Length > 1)
+                if (lovalVersionLines.Length > 1)
                     plugin.LocalTag = lovalVersionLines[1];
             }
 
@@ -381,14 +394,13 @@ namespace PoeHUD_PluginsUpdater
             if (WinApi.IsKeyDown(Keys.Space))
                 Settings.Enable.Value = false;
 
-            var posX = Settings.WindowPosX;
-            var posY = Settings.WindowPosY;
-            WindowHeight = AllPlugins.Count*30 + 55;
+            var drawPosX = Settings.WindowPosX;
+            var drawPosY = Settings.WindowPosY;
 
-            DrawRect = new RectangleF(posX, posY, WindowWidth, WindowHeight);
-
+            DrawRect = new RectangleF(drawPosX, drawPosY, WindowWidth + 10, WindowHeight + 55);
             UpdaterUtils.DrawFrameBox(DrawRect, 2, Color.Black, Color.White);
 
+            #region Close Button
             var closeRect = DrawRect;
             closeRect.X += closeRect.Width - 25;
             closeRect.Y += 5;
@@ -399,26 +411,161 @@ namespace PoeHUD_PluginsUpdater
             {
                 Settings.Enable.Value = false;
             }
-
             Graphics.DrawText("X", 20, new Vector2(closeRect.X + 4, closeRect.Y - 2), Color.White);
+            #endregion
 
-            posY += 5;
+            #region Tabs buttons
+            var installedButtonRect = new RectangleF(DrawRect.X + 5, DrawRect.Y + 5, 120, 25);
 
-            Graphics.DrawText("Plugin name", 15, new Vector2(posX + 15, posY + 5), Color.Gray);
-            Graphics.DrawText("Local version", 15, new Vector2(posX + 200, posY + 5), Color.Gray);
-            Graphics.DrawText("Remote version", 15, new Vector2(posX + 400, posY + 5), Color.Gray);
+            if (UpdaterUtils.DrawTextButton(installedButtonRect, "Installed Plugins", 15, 1, CurrentWindowTab == UWindowTab.InstalledPlugins ? Color.Gray : new Color(60, 60, 60, 255), 
+                Color.White, Color.White))
+                CurrentWindowTab = UWindowTab.InstalledPlugins;
 
-            posY += 30;
+            installedButtonRect.X += installedButtonRect.Width + 10;
+
+            if (UpdaterUtils.DrawTextButton(installedButtonRect, "Available Plugins", 15, 1, CurrentWindowTab == UWindowTab.AvailablePlugins ? Color.Gray : new Color(60, 60, 60, 255),
+                 Color.White, Color.White))
+                CurrentWindowTab = UWindowTab.AvailablePlugins;
+
+            #endregion
+
+
+            var subWindowRect = new RectangleF(drawPosX + 5, drawPosY + 30, WindowWidth, WindowHeight);
+            UpdaterUtils.DrawFrameBox(subWindowRect, 2, Color.Black, Color.White);
+
+            if (CurrentWindowTab == UWindowTab.InstalledPlugins)
+                DrawWindow_InstalledPlugins(subWindowRect.X, subWindowRect.Y, subWindowRect.Width);
+            else if (CurrentWindowTab == UWindowTab.AvailablePlugins)
+                DrawWindow_AllPlugins(subWindowRect.X, subWindowRect.Y, subWindowRect.Width);
+
+            Graphics.DrawText("Notes: Move window by mouse drag. Close window key: Space", 15, 
+                new Vector2(subWindowRect.X + 10, subWindowRect.Y + subWindowRect.Height + 5), Color.Gray, FontDrawFlags.Left);
+
+
+            bMouse_Click = false;
+        }
+
+        private void DrawWindow_AllPlugins(float drawPosX, float drawPosY, float width)
+        {
+            drawPosY += 5;
+
+            if(AllAvailablePlugins == null)
+            {
+                Graphics.DrawText($"File {AvailablePluginsConfigParser.AvailablePluginsConfigFile} is not found!", 20, new Vector2(drawPosX + 15, drawPosY + 5), Color.Red);
+                WindowHeight = 40;
+                return;
+            }
+
+            WindowHeight = AllAvailablePlugins.Count * 45 + 5;
+
+            foreach (var availPlug in AllAvailablePlugins)
+            {
+                var pluginFrame = new RectangleF(drawPosX + 5, drawPosY, width - 10, 40);
+                Graphics.DrawBox(pluginFrame, Color.Black);
+                Graphics.DrawFrame(pluginFrame, 2, Color.Gray);
+
+                Graphics.DrawText(availPlug.PluginName, 20, new Vector2(pluginFrame.X + 5, pluginFrame.Y));
+                Graphics.DrawText($"Owner: {availPlug.GitOwner}", 14, new Vector2(pluginFrame.X + 300, pluginFrame.Y + 3), Color.Gray);
+
+                Graphics.DrawText(availPlug.Description, 14, new Vector2(pluginFrame.X + 10, pluginFrame.Y + 23), Color.Gray);
+
+
+                var buttonRect = new RectangleF((pluginFrame.X + pluginFrame.Width) - 240, drawPosY + 4, 100, 30);
+
+                if (UpdaterUtils.DrawTextButton(buttonRect, "Open URL", 20, 1, new Color(50, 50, 50, 220), Color.White, Color.Yellow))
+                {
+                    System.Diagnostics.Process.Start($"https://github.com/{availPlug.GitOwner}/{availPlug.GitName}");
+                }
+
+                buttonRect.X += 105;
+                buttonRect.Width += 30;
+
+                if (availPlug.bOwned)
+                {
+                    Graphics.DrawText("Owned", 20, buttonRect.Center, Color.Green, FontDrawFlags.VerticalCenter | FontDrawFlags.Center);
+                }
+                else if (availPlug.InstalledPlugin != null)
+                {
+                    if(availPlug.InstalledPlugin.InstallProgress.Length > 0)
+                    {
+                        Graphics.DrawText(availPlug.InstalledPlugin.InstallProgress, 15, buttonRect.Center, Color.Green, FontDrawFlags.VerticalCenter | FontDrawFlags.Center);
+                    }
+                    else if(availPlug.bInstaled)
+                    {
+                        Graphics.DrawText("Restart PoeHUD", 20, buttonRect.Center, Color.Green, FontDrawFlags.VerticalCenter | FontDrawFlags.Center);
+                    }
+                    else
+                    {
+                        Graphics.DrawText("Downloading...", 20, buttonRect.Center, Color.Yellow, FontDrawFlags.VerticalCenter | FontDrawFlags.Center);
+                    }
+                }
+                else if (UpdaterUtils.DrawTextButton(buttonRect, "Install", 20, 1, new Color(50, 50, 50, 220), Color.White, Color.Yellow))
+                {
+                    var newPluginDir = Path.Combine(@"plugins\", availPlug.PluginName);
+                    Directory.CreateDirectory(newPluginDir);
+
+                    var newConfigPath = Path.Combine(newPluginDir, GitConfigParser.ConfigFileName);
+
+                    DownloadConfigForPlugin(availPlug, newConfigPath);
+                }
+
+                drawPosY += 45;
+            }
+        }
+
+        private async Task DownloadConfigForPlugin(AvailablePlugin plugin, string configPath)
+        {
+            if (!plugin.GitConfigURL.Contains("https://") && !plugin.GitConfigURL.Contains("$"))
+            {
+                LogMessage("Wrong config url: " + plugin.GitConfigURL, 10);
+                return;
+            }
+
+            if (plugin.GitConfigURL.Contains("https://"))
+            {
+                using (var webClient = new WebClient())
+                {
+                    await webClient.DownloadFileTaskAsync(plugin.GitConfigURL, configPath);
+
+                }
+            }
+            else
+            {
+                File.WriteAllLines(configPath, plugin.GitConfigURL.Split('$'));
+            }
+
+            var result = CheckAddPluginsByConfig();
+            if (result != null)
+            {
+                plugin.InstalledPlugin = result;
+
+                await CheckPluginUpdate(result);
+
+                result.UpdatePlugin();
+                plugin.bInstaled = true;
+            }
+        }
+
+        private void DrawWindow_InstalledPlugins(float drawPosX, float drawPosY, float width)
+        {
+            WindowHeight = AllPlugins.Count * 30 + 35;
+
+            drawPosY += 5;
+
+            Graphics.DrawText("Plugin name", 15, new Vector2(drawPosX + 15, drawPosY + 5), Color.Gray);
+            Graphics.DrawText("Local version", 15, new Vector2(drawPosX + 200, drawPosY + 5), Color.Gray);
+            Graphics.DrawText("Remote version", 15, new Vector2(drawPosX + 400, drawPosY + 5), Color.Gray);
+
+            drawPosY += 30;
 
             foreach (var plug in AllPlugins.ToList())
             {
-                var pluginFrame = new RectangleF(posX + 5, posY, WindowWidth - 10, 26);
+                var pluginFrame = new RectangleF(drawPosX + 5, drawPosY, width - 10, 26);
 
                 Graphics.DrawBox(pluginFrame, Color.Black);
                 Graphics.DrawFrame(pluginFrame, 2, Color.Gray);
 
                 pluginFrame.X += 10;
-                //pluginRect.Y += 5;
 
                 Graphics.DrawText(plug.PluginName, 20, new Vector2(pluginFrame.X, pluginFrame.Y));
                 Graphics.DrawText(plug.LocalVersion + (plug.LocalTag.Length > 0 ? $" ({plug.LocalTag})" : ""), 15, new Vector2(pluginFrame.X + 200, pluginFrame.Y + 5), Color.Gray);
@@ -433,7 +580,7 @@ namespace PoeHUD_PluginsUpdater
                 Graphics.DrawText(plug.RemoteVersion + (plug.RemoteTag.Length > 0 ? $" ({plug.RemoteTag})" : ""), 15, new Vector2(pluginFrame.X + 400, pluginFrame.Y + 5), color);
 
 
-                var buttonRect = new RectangleF(pluginFrame.X + pluginFrame.Width - 75, posY + 4, 60, 20);
+                var buttonRect = new RectangleF(pluginFrame.X + pluginFrame.Width - 75, drawPosY + 4, 60, 20);
                 var buttonTextPos = buttonRect.TopRight;
                 buttonTextPos.X -= 5;
                 buttonTextPos.Y += 2;
@@ -474,16 +621,15 @@ namespace PoeHUD_PluginsUpdater
                     Graphics.DrawText("Wrong git config?", 15, buttonTextPos, Color.Gray, FontDrawFlags.Right);
                 }
 
-                posY += 30;
+                drawPosY += 30;
             }
 
-            Graphics.DrawText("Notes: Move window by mouse drag. Close window key: Space", 15,
-                new Vector2(posX + 10, posY), Color.Gray, FontDrawFlags.Left);
-
-            bMouse_Click = false;
         }
 
-
-    
+        public enum UWindowTab
+        {
+            InstalledPlugins,
+            AvailablePlugins
+        }
     }
 }
