@@ -14,6 +14,7 @@ namespace PoeHUD_PluginsUpdater
         HasUpdate,
         HasLowerUpdate,
         UnknownUpdate,
+        WrongConfig,
         ReadyToInstal
     }
 
@@ -42,11 +43,12 @@ namespace PoeHUD_PluginsUpdater
         public string ReleaseRegexTag = "";
         public string RemoteVersion = "Undefined";
         public string RemoteTag = "";
-        public string RepoName = "-";
-        public string RepoOwner = "-";
+        public string RepoName = "";
+        public string RepoOwner = "";
+
+        public bool bHasGitConfig;
 
         public ePluginUpdateState UpdateState = ePluginUpdateState.Undefined;
-
         public ePluginSourceOfUpdate UpdateVariant = ePluginSourceOfUpdate.Undefined;
 
         public async void UpdatePlugin()

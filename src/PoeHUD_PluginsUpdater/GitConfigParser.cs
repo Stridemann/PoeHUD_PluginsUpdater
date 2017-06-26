@@ -40,7 +40,10 @@ namespace PoeHUD_PluginsUpdater
 
                 if (File.Exists(gitConfigFilePath))
                 {
+                    plugVariant.bHasGitConfig = true;
                     var configLines = File.ReadAllLines(gitConfigFilePath);
+
+
 
                     var handleIgnore = false;
                     for (var i = 0; i < configLines.Length; i++)
@@ -123,12 +126,32 @@ namespace PoeHUD_PluginsUpdater
                         }
                     }
 
-                    plugVariant.bAllowCheckUpdate = plugVariant.RepoOwner != "-" && plugVariant.RepoName != "-";
+                    plugVariant.bAllowCheckUpdate = true;
+
+                    if (string.IsNullOrEmpty(plugVariant.RepoOwner))
+                    {
+                        BasePlugin.LogError("PluginUpdater: Repository Owner is not defined in plugin: " + plugVariant.PluginName, 10);
+                        plugVariant.UpdateState = ePluginUpdateState.WrongConfig;
+                        plugVariant.bAllowCheckUpdate = false;
+                    }
+                    if (string.IsNullOrEmpty(plugVariant.RepoName))
+                    {
+                        BasePlugin.LogError("PluginUpdater: Repository Name is not defined in plugin: " + plugVariant.PluginName, 10);
+                        plugVariant.UpdateState = ePluginUpdateState.WrongConfig;
+                        plugVariant.bAllowCheckUpdate = false;
+                    }
+                    if (plugVariant.UpdateVariant == ePluginSourceOfUpdate.Undefined)
+                    {
+                        BasePlugin.LogError("PluginUpdater: Update type (Release or Repository) is not defined in plugin: " + plugVariant.PluginName, 10);
+                        plugVariant.UpdateState = ePluginUpdateState.WrongConfig;
+                        plugVariant.bAllowCheckUpdate = false;
+                    }
+                     
                 }
             }
             catch
             {
-                BasePlugin.LogError("PluginUpdater: Error while parsing git update config for plugin: " + plugVariant.PluginName, 5);
+                BasePlugin.LogError("PluginUpdater: Error while parsing git update config for plugin: " + plugVariant.PluginName, 10);
             }
         }
 

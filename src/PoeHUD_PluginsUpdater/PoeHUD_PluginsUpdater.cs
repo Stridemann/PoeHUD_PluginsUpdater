@@ -226,11 +226,13 @@ namespace PoeHUD_PluginsUpdater
                 }
                 catch (NotFoundException notFoundEx)
                 {
+                    plugin.UpdateState = ePluginUpdateState.WrongConfig;
                     LogError($"Plugin '" + plugin.PluginName + "' check update error: " + notFoundEx.Message, 10);
                     return;
                 }
                 catch (Exception ex)
                 {
+                    plugin.UpdateState = ePluginUpdateState.WrongConfig;
                     LogError($"Plugin '" + plugin.PluginName + "' check update unhandled error: " + ex.Message, 10);
                     return;
                 }
@@ -248,14 +250,6 @@ namespace PoeHUD_PluginsUpdater
                     {
                         if (asset.Name.EndsWith(".zip"))
                         {
-                            /*//Select this first release
-                            if (plugin.FilesToDownload.Count > 0)
-                            {
-                                LogMessage("Multiple .zip content is not allowed (Updating from Release). Current zip: " + asset.Name + ", Selected zip: " + plugin.FilesToDownload[0].Name, 10);
-                                continue;
-                            }
-                            */
-
                             plugin.RemoteVersion = release.PublishedAt?.ToString("dd.MM.yy, hh:mm");
                             plugin.RemoteTag = release.TagName;
 
@@ -268,6 +262,8 @@ namespace PoeHUD_PluginsUpdater
                             }
                             else
                             {
+                                plugin.UpdateState = ePluginUpdateState.Undefined;
+
                                 DateTimeOffset localParseResult;
                                 if (DateTimeOffset.TryParse(plugin.LocalVersion, out localParseResult))
                                 {
@@ -589,6 +585,10 @@ namespace PoeHUD_PluginsUpdater
                 {
                     Graphics.DrawText(plug.InstallProgress, 15, buttonTextPos, Color.White, FontDrawFlags.Right);
                 }
+                else if (!plug.bHasGitConfig)
+                {
+                    Graphics.DrawText("No git config", 15, buttonTextPos, Color.Gray, FontDrawFlags.Right);
+                }
                 else if (plug.UpdateState == ePluginUpdateState.HasUpdate ||
                          plug.UpdateState == ePluginUpdateState.HasLowerUpdate ||
                          plug.UpdateState == ePluginUpdateState.UnknownUpdate)
@@ -612,13 +612,9 @@ namespace PoeHUD_PluginsUpdater
                 {
                     Graphics.DrawText("(Restart PoeHUD)", 15, buttonTextPos, Color.Green, FontDrawFlags.Right);
                 }
-                else if (plug.UpdateVariant == ePluginSourceOfUpdate.Undefined)
-                {
-                    Graphics.DrawText("No git config", 15, buttonTextPos, Color.Gray, FontDrawFlags.Right);
-                }
                 else
                 {
-                    Graphics.DrawText("Wrong git config?", 15, buttonTextPos, Color.Gray, FontDrawFlags.Right);
+                    Graphics.DrawText("Wrong git config", 15, buttonTextPos, Color.Gray, FontDrawFlags.Right);
                 }
 
                 drawPosY += 30;
