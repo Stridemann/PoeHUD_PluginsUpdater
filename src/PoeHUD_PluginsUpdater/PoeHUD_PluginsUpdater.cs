@@ -59,7 +59,7 @@ namespace PoeHUD_PluginsUpdater
 
         public override void Initialise()
         {
-            Settings.Enable = false;
+            Settings.Enable.Value = false;
             Settings.Enable.OnValueChanged += OpenOrClose;
             MenuPlugin.ExternalMouseClick = OnMouseEvent;
         }
@@ -296,7 +296,14 @@ namespace PoeHUD_PluginsUpdater
             var versionFilePath = Path.Combine(plugin.PluginDirectory, VersionFileName);
 
             if (File.Exists(versionFilePath))
-                plugin.LocalVersion = File.ReadAllText(versionFilePath);
+            {
+                var lovalVersionLines = File.ReadAllLines(versionFilePath);
+                plugin.LocalVersion = lovalVersionLines[0];
+                if(lovalVersionLines.Length > 1)
+                    plugin.LocalTag = lovalVersionLines[1];
+            }
+
+
 
             if (plugin.UpdateVariant == ePluginSourceOfUpdate.Release) //Release
             {
@@ -341,6 +348,8 @@ namespace PoeHUD_PluginsUpdater
                             */
 
                             plugin.RemoteVersion = release.PublishedAt?.ToString("dd.MM.yy, hh:mm");
+                            plugin.RemoteTag = release.TagName;
+
 
                             if (plugin.LocalVersion == plugin.RemoteVersion)
                                 plugin.UpdateState = ePluginUpdateState.NoUpdate;
@@ -471,7 +480,6 @@ namespace PoeHUD_PluginsUpdater
             }
         }
 
-
         public override void Render()
         {
             if (WinApi.IsKeyDown(Keys.Space))
@@ -502,7 +510,7 @@ namespace PoeHUD_PluginsUpdater
 
             Graphics.DrawText("Plugin name", 15, new Vector2(posX + 15, posY + 5), Color.Gray);
             Graphics.DrawText("Local version", 15, new Vector2(posX + 200, posY + 5), Color.Gray);
-            Graphics.DrawText("Remote version", 15, new Vector2(posX + 350, posY + 5), Color.Gray);
+            Graphics.DrawText("Remote version", 15, new Vector2(posX + 400, posY + 5), Color.Gray);
 
             posY += 30;
 
@@ -517,7 +525,7 @@ namespace PoeHUD_PluginsUpdater
                 //pluginRect.Y += 5;
 
                 Graphics.DrawText(plug.PluginName, 20, new Vector2(pluginFrame.X, pluginFrame.Y));
-                Graphics.DrawText(plug.LocalVersion, 15, new Vector2(pluginFrame.X + 200, pluginFrame.Y + 5), Color.Gray);
+                Graphics.DrawText(plug.LocalVersion + (plug.LocalTag.Length > 0 ? $" ({plug.LocalTag})" : ""), 15, new Vector2(pluginFrame.X + 200, pluginFrame.Y + 5), Color.Gray);
 
                 var color = Color.Gray;
 
@@ -526,7 +534,7 @@ namespace PoeHUD_PluginsUpdater
                 else if (plug.UpdateState == ePluginUpdateState.HasLowerUpdate)
                     color = Color.Red;
 
-                Graphics.DrawText(plug.RemoteVersion, 15, new Vector2(pluginFrame.X + 350, pluginFrame.Y + 5), color);
+                Graphics.DrawText(plug.RemoteVersion + (plug.RemoteTag.Length > 0 ? $" ({plug.RemoteTag})" : ""), 15, new Vector2(pluginFrame.X + 400, pluginFrame.Y + 5), color);
 
 
                 var buttonRect = new RectangleF(pluginFrame.X + pluginFrame.Width - 75, posY + 4, 60, 20);

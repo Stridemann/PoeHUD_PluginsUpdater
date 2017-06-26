@@ -36,10 +36,12 @@ namespace PoeHUD_PluginsUpdater
         public string InstallProgress;
 
         public string LocalVersion = "Checking...";
+        public string LocalTag = "";
         public string PluginDirectory;
         public string PluginName = "%PluginName%";
         public string ReleaseRegexTag = "";
         public string RemoteVersion = "Undefined";
+        public string RemoteTag = "";
         public string RepoName = "-";
         public string RepoOwner = "-";
 
@@ -135,7 +137,7 @@ namespace PoeHUD_PluginsUpdater
                         InstallProgress = "";
 
                         var versionFilePath = Path.Combine(updateDirectory, PoeHUD_PluginsUpdater.VersionFileName);
-                        File.WriteAllText(versionFilePath, RemoteVersion);
+                        File.WriteAllText(versionFilePath, RemoteVersion + Environment.NewLine + RemoteTag);
 
                         UpdateState = ePluginUpdateState.ReadyToInstal;
                     }
