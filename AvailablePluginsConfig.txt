@@ -20,7 +20,7 @@ Plugin:Stashie
 GitOwner:nymann
 GitName:Stashie
 ConfigURL:https://raw.githubusercontent.com/nymann/Stashie/master/GitUpdateConfig.txt
-Desctription: Displaying empty/filled cells of closed inventory with item images.
+Desctription: Moving all items from inventory to stash tabs.
 
 Plugin:InventoryPreview
 GitOwner:zaafar
