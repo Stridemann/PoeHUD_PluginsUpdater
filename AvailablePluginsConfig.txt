@@ -13,7 +13,7 @@ Desctription: Highlighting points on passive skill tree from build url.
 Plugin:AutoFlaskManager
 GitOwner:Xcesius
 GitName:AutoFlaskManager
-ConfigURL:Owner:Xcesius$Name: AutoFlaskManager$Repository$Ignore:$src$.gitignore$README.md
+ConfigURL:https://raw.githubusercontent.com/Xcesius/AutoFlaskManager/master/GitUpdateConfig.txt
 Desctription: Plugin for automatically using the flasks.
 
 Plugin:Stashie
