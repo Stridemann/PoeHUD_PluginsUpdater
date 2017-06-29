@@ -27,5 +27,6 @@ namespace PoeHUD_PluginsUpdater
         public float WindowPosX = 300;
         public float WindowPosY = 400;
         public string GitToken;//User can use his own personal token
+        public string PoeHUDBranch = "x64";
     }
 }

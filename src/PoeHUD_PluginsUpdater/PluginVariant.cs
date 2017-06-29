@@ -46,10 +46,15 @@ namespace PoeHUD_PluginsUpdater
         public string RepoName = "";
         public string RepoOwner = "";
 
+        public bool IsPoeHUD = false;
+        public string PoehudExeRealName = "";
+
         public bool bHasGitConfig;
 
         public ePluginUpdateState UpdateState = ePluginUpdateState.Undefined;
         public ePluginSourceOfUpdate UpdateVariant = ePluginSourceOfUpdate.Undefined;
+
+        public Action<PluginToUpdate> DoAfterUpdate = delegate { };
 
         public async void UpdatePlugin()
         {
@@ -138,6 +143,8 @@ namespace PoeHUD_PluginsUpdater
 
                         UpdateState = ePluginUpdateState.ReadyToInstal;
                     }
+
+                   
                 }
                 catch (Exception ex)
                 {
@@ -145,7 +152,7 @@ namespace PoeHUD_PluginsUpdater
                     BasePlugin.LogError(
                         "Plugins Updater: Error while updating plugin: " + PluginName + ", Error: " + ex.Message, 10);
                 }
-
+                DoAfterUpdate(this);
                 #endregion
             }
             else if (UpdateVariant == ePluginSourceOfUpdate.RepoBranch)
@@ -181,6 +188,7 @@ namespace PoeHUD_PluginsUpdater
 
                         UpdateState = ePluginUpdateState.ReadyToInstal;
                     }
+                  
                 }
                 catch (Exception ex)
                 {
@@ -188,6 +196,7 @@ namespace PoeHUD_PluginsUpdater
                     BasePlugin.LogError(
                         "Plugins Updater: Error while updating plugin: " + PluginName + ", Error: " + ex.Message, 10);
                 }
+                DoAfterUpdate(this);
             }
             else
             {
