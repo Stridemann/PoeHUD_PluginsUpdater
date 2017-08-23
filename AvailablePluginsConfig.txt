@@ -1,3 +1,9 @@
+Plugin:SithylisQoL
+GitOwner:Sithylis
+GitName:SithylisQoL
+ConfigURL:https://raw.githubusercontent.com/DetectiveSquirrel/SithylisQoL/master/GitUpdateConfig.txt
+Desctription: Misc QoL Features for PoeHUD
+
 Plugin:AutoQuit
 GitOwner:zaafar
 GitName:AutoQuit
