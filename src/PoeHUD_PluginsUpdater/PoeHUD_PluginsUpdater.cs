@@ -435,10 +435,10 @@ namespace PoeHUD_PluginsUpdater
                     var download = false;
 
 
-                    if (plugin.IsPoeHUD && contentEntity.Name == "PoeHUD.exe")
+                    if (plugin.IsPoeHUD && contentEntity.Name.Contains("PoeHUD.exe"))
                     {
-                        var localPath = Path.Combine(plugin.PluginDirectory + @"\" + path, plugin.PoehudExeRealName);
 
+                        var localPath = Path.Combine(plugin.PluginDirectory + @"\", plugin.PoehudExeRealName);
                         var poeHudFInfo = new FileInfo(localPath);
 
                         if (poeHudFInfo.Exists)
@@ -452,6 +452,8 @@ namespace PoeHUD_PluginsUpdater
                     else
                     {
                         var localPath = Path.Combine(plugin.PluginDirectory + @"\" + path, contentEntity.Name);
+                        if (plugin.IsPoeHUD && path.Contains("Release"))
+                            localPath = Path.Combine(plugin.PluginDirectory + @"\" + path.Remove(path.IndexOf("Release"),7), contentEntity.Name);
 
                         if (File.Exists(localPath))
                         {
@@ -471,6 +473,8 @@ namespace PoeHUD_PluginsUpdater
                     if (download)
                     {
                         var updateFilePath = Path.Combine(plugin.PluginDirectory + @"\" + UpdateTempDir + @"\" + path, contentEntity.Name);
+                        if (plugin.IsPoeHUD && path.Contains("Release"))
+                            updateFilePath = Path.Combine(plugin.PluginDirectory + @"\" + UpdateTempDir + @"\" + path.Remove(path.IndexOf("Release"), 7), contentEntity.Name);
 
                         plugin.FilesToDownload.Add(new FileToDownload
                         {
