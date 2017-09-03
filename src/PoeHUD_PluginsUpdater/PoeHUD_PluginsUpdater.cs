@@ -170,7 +170,7 @@ namespace PoeHUD_PluginsUpdater
                 BranchName = Settings.PoeHUDBranch,
                 UpdateVariant = ePluginSourceOfUpdate.RepoBranch,
                 UpdateState = ePluginUpdateState.ReadyToInstal,
-                IgnoredEntities = new List<string>() { "src" },
+                IgnoredEntities = new List<string>() { "src", ".gitattributes", ".gitignore", "README.md", "shortcut.bat" },
                 IsPoeHUD = true,
                 PoehudExeRealName = poehudExeName
             };
