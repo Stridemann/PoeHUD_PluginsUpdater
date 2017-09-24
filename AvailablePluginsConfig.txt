@@ -1,3 +1,9 @@
+Plugin:LabyrinthLayout
+GitOwner:Sithylis
+GitName:Labyrinth-Layout
+ConfigURL:https://raw.githubusercontent.com/DetectiveSquirrel/Labyrinth-Layout/master/GitUpdateConfig.txt
+Desctription: Load labyrinth route from poelab.com 
+
 Plugin:SithylisQoL
 GitOwner:Sithylis
 GitName:SithylisQoL
