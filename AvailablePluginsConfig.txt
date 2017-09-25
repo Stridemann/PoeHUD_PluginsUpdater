@@ -1,11 +1,11 @@
 Plugin:LabyrinthLayout
-GitOwner:Sithylis
+GitOwner:DetectiveSquirrel
 GitName:Labyrinth-Layout
 ConfigURL:https://raw.githubusercontent.com/DetectiveSquirrel/Labyrinth-Layout/master/GitUpdateConfig.txt
 Desctription: Load labyrinth route from poelab.com 
 
 Plugin:SithylisQoL
-GitOwner:Sithylis
+GitOwner:DetectiveSquirrel
 GitName:SithylisQoL
 ConfigURL:https://raw.githubusercontent.com/DetectiveSquirrel/SithylisQoL/master/GitUpdateConfig.txt
 Desctription: Misc QoL Features for PoeHUD
