@@ -1,3 +1,9 @@
+Plugin:AdvancedUberLabLayout
+GitOwner:Stridemann
+GitName:PoeHUD_AdvancedUberLabLayout
+ConfigURL:https://raw.githubusercontent.com/Stridemann/PoeHUD_AdvancedUberLabLayout/master/GitUpdateConfig.txt
+Desctription: Auto loading labyrinth route from poelab.com (optimized)
+
 Plugin:LabyrinthLayout
 GitOwner:DetectiveSquirrel
 GitName:Labyrinth-Layout
