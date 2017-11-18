@@ -1,3 +1,21 @@
+Plugin:Pickit
+GitOwner:DetectiveSquirrel
+GitName:Pickit
+ConfigURL:https://raw.githubusercontent.com/DetectiveSquirrel/Pickit/master/GitUpdateConfig.txt
+Desctription: Suto PickIt in Poe
+
+Plugin:Pickit
+GitOwner:DetectiveSquirrel
+GitName:Pickit
+ConfigURL:https://raw.githubusercontent.com/DetectiveSquirrel/Pickit/master/GitUpdateConfig.txt
+Desctription: Suto PickIt in Poe
+
+Plugin:AdvancedUberLabLayout
+GitOwner:Zaafar
+GitName:poehudDebugPlugin
+ConfigURL:https://raw.githubusercontent.com/zaafar/poehudDebugPlugin/master/GitUpdateConfig.txt
+Desctription: Debugging Poe Game UI Elements
+
 Plugin:AdvancedUberLabLayout
 GitOwner:Stridemann
 GitName:PoeHUD_AdvancedUberLabLayout
