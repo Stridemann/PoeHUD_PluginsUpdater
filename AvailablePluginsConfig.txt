@@ -1,3 +1,9 @@
+Plugin:mineDetonator
+GitOwner:Zaafar
+GitName:mineDetonator
+ConfigURL:https://raw.githubusercontent.com/zaafar/mineDetonator/master/GitUpdateConfig.txt
+Desctription: For Detonating Mines
+
 Plugin:Pickit
 GitOwner:DetectiveSquirrel
 GitName:Pickit
