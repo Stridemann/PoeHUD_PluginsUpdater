@@ -70,31 +70,37 @@ namespace PoeHUD_PluginsUpdater
             AllAvailablePlugins = AvailablePluginsConfigParser.Parse(PluginDirectory);
 
             Settings.Enable.OnValueChanged += OpenOrClose;
-            MenuPlugin.ExternalMouseClick = OnMouseEvent;
+            MenuPlugin.KeyboardMouseEvents.MouseDown += OnMouseDown;
+            MenuPlugin.KeyboardMouseEvents.MouseUp += KeyboardMouseEvents_MouseUp;
+            MenuPlugin.KeyboardMouseEvents.MouseMove += KeyboardMouseEvents_MouseMove;
+            MenuPlugin.KeyboardMouseEvents.MouseClick += KeyboardMouseEvents_MouseClick;
         }
 
-        private bool OnMouseEvent(MouseEventID id, Vector2 position)
+        private void KeyboardMouseEvents_MouseClick(object sender, MouseEventArgs e)
         {
-            if (!Settings.Enable) return false;
-            Mouse_Pos = position;
+            if (!Settings.Enable) return;
 
-            if (id == MouseEventID.LeftButtonDown)
+            if (e.Button == MouseButtons.Left)
             {
-                if (DrawRect.Contains(Mouse_Pos))
+                var position = FixMousePos(new Vector2(e.X, e.Y));
+                var hitWindow = DrawRect.Contains(position);
+                if (hitWindow)
                 {
-                    bMouse_Drag = true;
-                    Mouse_StartDragPos = position;
-                    StartDragWinPosX = Settings.WindowPosX;
-                    StartDragWinPosY = Settings.WindowPosY;
+                    Mouse_ClickPos = position;
+                    bMouse_Click = true;
                 }
             }
-            else if (id == MouseEventID.LeftButtonUp)
+        }
+
+        private void KeyboardMouseEvents_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!Settings.Enable) return;
+
+            Mouse_Pos = FixMousePos(new Vector2(e.Location.X, e.Location.Y));
+
+            if (bMouse_Drag)
             {
-                bMouse_Drag = false;
-            }
-            else if (bMouse_Drag && id == MouseEventID.MouseMove)
-            {
-                Mouse_DragDelta = position - Mouse_StartDragPos;
+                Mouse_DragDelta = Mouse_Pos - Mouse_StartDragPos;
 
                 Settings.WindowPosX = StartDragWinPosX + Mouse_DragDelta.X;
                 Settings.WindowPosY = StartDragWinPosY + Mouse_DragDelta.Y;
@@ -113,24 +119,46 @@ namespace PoeHUD_PluginsUpdater
                 if (Settings.WindowPosY + WindowHeight > clientRect.Height)
                     Settings.WindowPosY = clientRect.Height - WindowHeight;
             }
+        }
 
+        private void KeyboardMouseEvents_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (!Settings.Enable) return;
 
-            if (id != MouseEventID.LeftButtonUp && id != MouseEventID.LeftButtonDown) return false;
+            if (e.Button == MouseButtons.Left)
+            {
+                bMouse_Drag = false;
+            }
+        }
 
-            var hitWindow = DrawRect.Contains(position);
+        private void OnMouseDown(object sender, MouseEventArgs e)
+        {
+            if (!Settings.Enable) return;
 
-            bMouse_Click = hitWindow && id == MouseEventID.LeftButtonUp;
-            if (bMouse_Click)
-                Mouse_ClickPos = position;
+            if (e.Button == MouseButtons.Left)
+            {
+                if (DrawRect.Contains(Mouse_Pos))
+                {
+                    bMouse_Drag = true;
+                    Mouse_StartDragPos = Mouse_Pos;
+                    StartDragWinPosX = Settings.WindowPosX;
+                    StartDragWinPosY = Settings.WindowPosY;
+                }
+            }
+            return;// hitWindow;
+        }
 
-            return hitWindow;
+        private Vector2 FixMousePos(Vector2 rawPos)
+        {
+            var offset = GameController.Window.GetWindowRectangle();
+            return rawPos - offset.TopLeft;
         }
 
         private void OpenOrClose()
         {
             if (!Settings.Enable) return;
 
-            RootButton.Instance.CloseRootMenu();
+            //RootButton.Instance.CloseRootMenu();
 
             if (InitOnce) return;
             InitOnce = true;

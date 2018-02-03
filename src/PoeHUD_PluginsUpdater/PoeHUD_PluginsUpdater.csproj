@@ -34,6 +34,10 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Gma.System.MouseKeyHook">
+      <HintPath>..\..\..\..\Gma.System.MouseKeyHook.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Octokit, Version=0.24.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Octokit.0.24.0\lib\net45\Octokit.dll</HintPath>
       <Private>True</Private>
@@ -42,24 +46,25 @@
       <HintPath>..\..\..\..\PoeHUD.exe</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SharpDX, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpDX.4.0.1\lib\net45\SharpDX.dll</HintPath>
+    <Reference Include="SharpDX">
+      <HintPath>..\..\..\..\SharpDX.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SharpDX.Desktop, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpDX.Desktop.4.0.1\lib\net45\SharpDX.Desktop.dll</HintPath>
+    <Reference Include="SharpDX.Desktop">
+      <HintPath>..\..\..\..\SharpDX.Desktop.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SharpDX.Direct3D9, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpDX.Direct3D9.4.0.1\lib\net45\SharpDX.Direct3D9.dll</HintPath>
+    <Reference Include="SharpDX.Direct3D9">
+      <HintPath>..\..\..\..\SharpDX.Direct3D9.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SharpDX.Mathematics, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpDX.Mathematics.4.0.1\lib\net45\SharpDX.Mathematics.dll</HintPath>
+    <Reference Include="SharpDX.Mathematics">
+      <HintPath>..\..\..\..\SharpDX.Mathematics.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Windows.Forms" />
