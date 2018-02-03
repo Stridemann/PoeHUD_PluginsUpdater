@@ -35,7 +35,7 @@ namespace PoeHUD_PluginsUpdater
         public const string VersionFileName = "%PluginVersion.txt";
         public const string UpdateTempDir = "%PluginUpdate%";//Do not change this value. Otherwice this value in PoeHUD should be also changed.
 
-        private string[] PoeHUDBranches = new string[] { "x64", "Garena_DirectX_11" };
+        private string[] PoeHUDBranches = new string[] { "x64", "Garena_x64" };
 
 
         private List<PluginToUpdate> AllPlugins = new List<PluginToUpdate>();
@@ -72,48 +72,39 @@ namespace PoeHUD_PluginsUpdater
 
             Settings.Enable.OnValueChanged += OpenOrClose;
 
-            MenuPlugin.KeyboardMouseEvents.MouseDownExt += OnMouseDown;
-            MenuPlugin.KeyboardMouseEvents.MouseUpExt += KeyboardMouseEvents_MouseUp;
+            MenuPlugin.KeyboardMouseEvents.MouseDownExt += KeyboardMouseEvents_MouseDownExt;
+            MenuPlugin.KeyboardMouseEvents.MouseUpExt += KeyboardMouseEvents_MouseUpExt;
             MenuPlugin.KeyboardMouseEvents.MouseMoveExt += KeyboardMouseEvents_MouseMove;
-        }
-
-        private void KeyboardMouseEvents_MouseDownExt()
-        {
-            throw new NotImplementedException();
         }
 
         private void KeyboardMouseEvents_MouseMove(object sender, MouseEventExtArgs e)
         {
             if (!Settings.Enable) return;
 
-            Mouse_Pos = FixMousePos(new Vector2(e.Location.X, e.Location.Y));
+            Mouse_Pos = GameController.Window.ScreenToClient(e.X, e.Y);
+            var clientRect = GameController.Window.GetWindowRectangle();
 
             if (bMouse_Drag)
             {
                 Mouse_DragDelta = Mouse_Pos - Mouse_StartDragPos;
 
-                Settings.WindowPosX = StartDragWinPosX + Mouse_DragDelta.X;
-                Settings.WindowPosY = StartDragWinPosY + Mouse_DragDelta.Y;
-
                 if (Settings.WindowPosX < 0)
                     Settings.WindowPosX = 0;
+                else if (Settings.WindowPosX + WindowWidth > clientRect.Width)
+                    Settings.WindowPosX = clientRect.Width - WindowWidth;
+                else
+                    Settings.WindowPosX = StartDragWinPosX + Mouse_DragDelta.X;
 
                 if (Settings.WindowPosY < 0)
                     Settings.WindowPosY = 0;
-
-                var clientRect = GameController.Window.GetWindowRectangle();
-
-                if (Settings.WindowPosX + WindowWidth > clientRect.Width)
-                    Settings.WindowPosX = clientRect.Width - WindowWidth;
-
-                if (Settings.WindowPosY + WindowHeight > clientRect.Height)
+                else if (Settings.WindowPosY + WindowHeight > clientRect.Height)
                     Settings.WindowPosY = clientRect.Height - WindowHeight;
-
-                e.Handled = true;
+                else
+                    Settings.WindowPosY = StartDragWinPosY + Mouse_DragDelta.Y;
             }
         }
 
-        private void KeyboardMouseEvents_MouseUp(object sender, MouseEventExtArgs e)
+        private void KeyboardMouseEvents_MouseUpExt(object sender, MouseEventExtArgs e)
         {
             if (!Settings.Enable) return;
 
@@ -127,19 +118,17 @@ namespace PoeHUD_PluginsUpdater
             }
         }
 
-        private void OnMouseDown(object sender, MouseEventExtArgs e)
+        private void KeyboardMouseEvents_MouseDownExt(object sender, MouseEventExtArgs e)
         {
             if (!Settings.Enable) return;
 
             if (e.Button == MouseButtons.Left)
             {
-                var position = FixMousePos(new Vector2(e.X, e.Y));
+                var position = GameController.Window.ScreenToClient(e.X, e.Y);
                 if (DrawRect.Contains(position))
                 {
                     Mouse_ClickPos = position;
                     bMouse_Click = true;
-
-
 
                     bMouse_Drag = true;
                     Mouse_StartDragPos = position;
@@ -148,13 +137,6 @@ namespace PoeHUD_PluginsUpdater
                     e.Handled = true;
                 }
             }
-            return;// hitWindow;
-        }
-
-        private Vector2 FixMousePos(Vector2 rawPos)
-        {
-            var offset = GameController.Window.GetWindowRectangle();
-            return rawPos - offset.TopLeft;
         }
 
         private void OpenOrClose()
