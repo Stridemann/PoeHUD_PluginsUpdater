@@ -99,3 +99,9 @@ GitOwner:k-Sacr
 GitName:BladeFlurryCharges
 ConfigURL:Owner:k-Sacr$Name:BladeFlurryCharges$Repository$Ignore:$src$.gitignore$README.md
 Desctription: Mouse click on maximum blade flurry charges.
+
+Plugin:AutoGolem
+GitOwner:KaomsHeart
+GitName:AutoGolem
+ConfigURL:https://raw.githubusercontent.com/KaomsHeart/AutoGolem/master/GitUpdateConfig.txt
+Desctription: Automatically cast your golems.
