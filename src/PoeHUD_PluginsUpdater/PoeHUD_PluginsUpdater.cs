@@ -18,6 +18,7 @@ using System.Net;
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using Gma.System.MouseKeyHook;
 
 namespace PoeHUD_PluginsUpdater
 {
@@ -70,29 +71,18 @@ namespace PoeHUD_PluginsUpdater
             AllAvailablePlugins = AvailablePluginsConfigParser.Parse(PluginDirectory);
 
             Settings.Enable.OnValueChanged += OpenOrClose;
-            MenuPlugin.KeyboardMouseEvents.MouseDown += OnMouseDown;
-            MenuPlugin.KeyboardMouseEvents.MouseUp += KeyboardMouseEvents_MouseUp;
-            MenuPlugin.KeyboardMouseEvents.MouseMove += KeyboardMouseEvents_MouseMove;
-            MenuPlugin.KeyboardMouseEvents.MouseClick += KeyboardMouseEvents_MouseClick;
+
+            MenuPlugin.KeyboardMouseEvents.MouseDownExt += OnMouseDown;
+            MenuPlugin.KeyboardMouseEvents.MouseUpExt += KeyboardMouseEvents_MouseUp;
+            MenuPlugin.KeyboardMouseEvents.MouseMoveExt += KeyboardMouseEvents_MouseMove;
         }
 
-        private void KeyboardMouseEvents_MouseClick(object sender, MouseEventArgs e)
+        private void KeyboardMouseEvents_MouseDownExt()
         {
-            if (!Settings.Enable) return;
-
-            if (e.Button == MouseButtons.Left)
-            {
-                var position = FixMousePos(new Vector2(e.X, e.Y));
-                var hitWindow = DrawRect.Contains(position);
-                if (hitWindow)
-                {
-                    Mouse_ClickPos = position;
-                    bMouse_Click = true;
-                }
-            }
+            throw new NotImplementedException();
         }
 
-        private void KeyboardMouseEvents_MouseMove(object sender, MouseEventArgs e)
+        private void KeyboardMouseEvents_MouseMove(object sender, MouseEventExtArgs e)
         {
             if (!Settings.Enable) return;
 
@@ -118,31 +108,44 @@ namespace PoeHUD_PluginsUpdater
 
                 if (Settings.WindowPosY + WindowHeight > clientRect.Height)
                     Settings.WindowPosY = clientRect.Height - WindowHeight;
+
+                e.Handled = true;
             }
         }
 
-        private void KeyboardMouseEvents_MouseUp(object sender, MouseEventArgs e)
+        private void KeyboardMouseEvents_MouseUp(object sender, MouseEventExtArgs e)
         {
             if (!Settings.Enable) return;
 
             if (e.Button == MouseButtons.Left)
             {
-                bMouse_Drag = false;
-            }
-        }
-
-        private void OnMouseDown(object sender, MouseEventArgs e)
-        {
-            if (!Settings.Enable) return;
-
-            if (e.Button == MouseButtons.Left)
-            {
-                if (DrawRect.Contains(Mouse_Pos))
+                if (bMouse_Drag)
                 {
+                    bMouse_Drag = false;
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void OnMouseDown(object sender, MouseEventExtArgs e)
+        {
+            if (!Settings.Enable) return;
+
+            if (e.Button == MouseButtons.Left)
+            {
+                var position = FixMousePos(new Vector2(e.X, e.Y));
+                if (DrawRect.Contains(position))
+                {
+                    Mouse_ClickPos = position;
+                    bMouse_Click = true;
+
+
+
                     bMouse_Drag = true;
-                    Mouse_StartDragPos = Mouse_Pos;
+                    Mouse_StartDragPos = position;
                     StartDragWinPosX = Settings.WindowPosX;
                     StartDragWinPosY = Settings.WindowPosY;
+                    e.Handled = true;
                 }
             }
             return;// hitWindow;
