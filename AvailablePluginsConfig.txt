@@ -58,12 +58,6 @@ GitName:Stashie
 ConfigURL:https://raw.githubusercontent.com/nymann/Stashie/master/GitUpdateConfig.txt
 Desctription: Moving all items from inventory to stash tabs.
 
-Plugin:MoveToStash
-GitOwner:k-Sacr
-GitName:MoveToStash
-ConfigURL:Owner:k-Sacr$Name:MoveToStash$Repository$Ignore:$src$.gitignore
-Desctription: Moving all items from inventory to stash tabs.
-
 Plugin:InventoryPreview
 GitOwner:zaafar
 GitName:poehud_inventorypreview
@@ -75,12 +69,6 @@ GitOwner:zaafar
 GitName:DropStatistics
 ConfigURL:https://raw.githubusercontent.com/zaafar/DropStatistics/master/GitUpdateConfig.txt
 Desctription: Give information: how much currency (in chaos) you are making.
-
-Plugin:InventoryItemsAnalyzer
-GitOwner:k-Sacr
-GitName:InventoryItemsAnalyzer
-ConfigURL:Owner:k-Sacr$Name:InventoryItemsAnalyzer$Repository$Ignore:$src$.gitignore$README.md$.gitattributes
-Desctription: Higlighting inventory items by defined item mods with values.
 
 Plugin:MapsExchange
 GitOwner:zaafar
@@ -94,14 +82,14 @@ GitName:PoeHUD_FullRareSetManager
 ConfigURL:https://raw.githubusercontent.com/Stridemann/PoeHUD_FullRareSetManager/master/GitUpdateConfig.txt
 Desctription: Shows how much items you already have for Rare Set exchange.
 
-Plugin:BladeFlurryCharges
-GitOwner:k-Sacr
-GitName:BladeFlurryCharges
-ConfigURL:Owner:k-Sacr$Name:BladeFlurryCharges$Repository$Ignore:$src$.gitignore$README.md
-Desctription: Mouse click on maximum blade flurry charges.
-
 Plugin:AutoGolem
 GitOwner:KaomsHeart
 GitName:AutoGolem
 ConfigURL:https://raw.githubusercontent.com/KaomsHeart/AutoGolem/master/GitUpdateConfig.txt
 Desctription: Automatically cast your golems.
+
+Plugin:MinionHealthPlugin
+GitOwner:Stridemann
+GitName:MinionHealthPlugin
+ConfigURL:https://raw.githubusercontent.com/Stridemann/MinionHealthPlugin/master/GitUpdateConfig.txt
+Desctription: For Raise Spectre, Raise Zombie and Flesh Offering
