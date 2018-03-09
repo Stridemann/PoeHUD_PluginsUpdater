@@ -4,6 +4,12 @@ GitName:mineDetonator
 ConfigURL:https://raw.githubusercontent.com/zaafar/mineDetonator/master/GitUpdateConfig.txt
 Desctription: For Detonating Mines
 
+Plugin:Elite Healthbars
+GitOwner:Stridemann
+GitName:PoeHUD_EliteHealthbarsPlugin
+ConfigURL:https://raw.githubusercontent.com/Stridemann/PoeHUD_EliteHealthbarsPlugin/master/GitUpdateConfig.txt
+Desctription: Draw healthbars of magic/rare/uniq mobs
+
 Plugin:Pickit
 GitOwner:DetectiveSquirrel
 GitName:Pickit
