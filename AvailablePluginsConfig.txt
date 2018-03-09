@@ -52,12 +52,6 @@ GitName:PoE_PassiveSkillTreePlanter
 ConfigURL:https://raw.githubusercontent.com/Stridemann/PoE_PassiveSkillTreePlanter/master/GitUpdateConfig.txt
 Desctription: Highlighting points on passive skill tree from build url.
 
-Plugin:AutoFlaskManager
-GitOwner:Xcesius
-GitName:AutoFlaskManager
-ConfigURL:https://raw.githubusercontent.com/Xcesius/AutoFlaskManager/master/GitUpdateConfig.txt
-Desctription: Plugin for automatically using the flasks.
-
 Plugin:Stashie
 GitOwner:nymann
 GitName:Stashie
