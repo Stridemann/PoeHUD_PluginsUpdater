@@ -10,6 +10,12 @@ GitName:PoeHUD_EliteHealthbarsPlugin
 ConfigURL:https://raw.githubusercontent.com/Stridemann/PoeHUD_EliteHealthbarsPlugin/master/GitUpdateConfig.txt
 Desctription: Draw healthbars of magic/rare/uniq mobs
 
+Plugin:BestiaryCraftPlugin
+GitOwner:Stridemann
+GitName:PoeHUD_BestiaryCraftPlugin
+ConfigURL:https://raw.githubusercontent.com/Stridemann/PoeHUD_BestiaryCraftPlugin/master/GitUpdateConfig.txt
+Desctription: Bestiary: Shows what we can craft and can the monster be captured
+
 Plugin:Pickit
 GitOwner:DetectiveSquirrel
 GitName:Pickit
