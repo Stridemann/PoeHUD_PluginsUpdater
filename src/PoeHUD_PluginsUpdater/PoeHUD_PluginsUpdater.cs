@@ -70,8 +70,6 @@ namespace PoeHUD_PluginsUpdater
             Settings.Enable.Value = false; //OpenOrClose();
             AllAvailablePlugins = AvailablePluginsConfigParser.Parse(PluginDirectory);
 
-            Settings.Enable.OnValueChanged += OpenOrClose;
-
             MenuPlugin.KeyboardMouseEvents.MouseDownExt += KeyboardMouseEvents_MouseDownExt;
             MenuPlugin.KeyboardMouseEvents.MouseUpExt += KeyboardMouseEvents_MouseUpExt;
             MenuPlugin.KeyboardMouseEvents.MouseMoveExt += KeyboardMouseEvents_MouseMove;
@@ -511,6 +509,7 @@ namespace PoeHUD_PluginsUpdater
 
         public override void Render()
         {
+            OpenOrClose();
             if (WinApi.IsKeyDown(Keys.Space))
                 Settings.Enable.Value = false;
 
