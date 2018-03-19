@@ -223,6 +223,12 @@ namespace PoeHUD_PluginsUpdater
                 return;
             }
 
+            if (newExe != null)
+            {
+                var hudHashFilePath = Path.Combine(poehudExeLocation, PoehudHashFile);
+                File.WriteAllText(hudHashFilePath, newExe.Sha);
+            }
+
             var psi = new ProcessStartInfo();
             psi.CreateNoWindow = true; //This hides the dos-style black window that the command prompt usually shows
             psi.FileName = @"cmd.exe";
@@ -241,11 +247,7 @@ namespace PoeHUD_PluginsUpdater
                 //If you are here the user clicked declined to grant admin privileges (or he's not administrator)
             }
 
-            if (newExe != null)
-            {
-                var hudHashFilePath = Path.Combine(poehudExeLocation, PoehudHashFile);
-                File.WriteAllText(hudHashFilePath, newExe.Sha);
-            }
+      
         }
 
 
