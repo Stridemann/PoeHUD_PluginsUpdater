@@ -70,14 +70,17 @@ namespace PoeHUD_PluginsUpdater
         private bool InitializeOnce;
         public override void OnPluginSelectedInMenu()
         {
-            Settings.Enable = true;
             if (InitializeOnce) return;
             InitializeOnce = true;
 
+            ForceInitialize();
+        }
+
+        private void ForceInitialize()
+        {
             gitClient = new GitHubClient(new ProductHeaderValue("PoeHUDPluginsUpdater"));
 
             UGraphics = Graphics;
-            Settings.Enable.Value = true; //OpenOrClose();
             AllAvailablePlugins = AvailablePluginsConfigParser.Parse(PluginDirectory);
 
             MenuPlugin.KeyboardMouseEvents.MouseDownExt += KeyboardMouseEvents_MouseDownExt;
@@ -565,6 +568,30 @@ namespace PoeHUD_PluginsUpdater
                 foreach (var plug in AllPlugins.ToList())
                 {
                     ImGui.Text(plug.PluginName);
+
+                    if(plug.IsPoeHUD)
+                    {
+                        var x64 = PoeHUDBranches[0];
+                        if (ImGui.RadioButtonBool(x64, Settings.PoeHUDBranch == x64))
+                        {
+                            if(Settings.PoeHUDBranch != x64)
+                            {
+                                Settings.PoeHUDBranch = x64;
+                                ForceInitialize();
+                            }
+                        }
+
+                        var garena = PoeHUDBranches[1];
+                        if (ImGui.RadioButtonBool(garena, Settings.PoeHUDBranch == garena))
+                        {
+                            if(Settings.PoeHUDBranch != garena)
+                            {
+                                Settings.PoeHUDBranch = garena;
+                                ForceInitialize();
+                            }
+                        }
+                    }
+
                     ImGui.NextColumn();
 
                     style.SetColor(ColorTarget.Text, new ImGuiVector4(0.5f, 0.5f, 0.5f, 1));
@@ -577,7 +604,18 @@ namespace PoeHUD_PluginsUpdater
                     else if (plug.UpdateState == ePluginUpdateState.HasLowerUpdate)
                         style.SetColor(ColorTarget.Text, new ImGuiVector4(1, 0, 0, 1));
 
-                    ImGui.Text(plug.RemoteVersion + (plug.RemoteTag.Length > 0 ? $" ({plug.RemoteTag})" : ""));
+                    if(plug.RemoteVersion == "No changes" || plug.RemoteVersion == "Undefined")
+                    {
+                        ImGui.Text(plug.RemoteVersion);
+                    }
+                    else if (ImGui.CollapsingHeader(plug.RemoteVersion + (plug.RemoteTag.Length > 0 ? $" ({plug.RemoteTag})" : "") + UniqId, UniqId, true, false))
+                    {
+                        foreach(var file in plug.FilesToDownload)
+                        {
+                            ImGui.Text(file.Name);
+                        }
+                    }
+
                     style.SetColor(ColorTarget.Text, textColorBack);
 
                     ImGui.NextColumn();
