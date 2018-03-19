@@ -143,8 +143,6 @@ namespace PoeHUD_PluginsUpdater
 
                         UpdateState = ePluginUpdateState.ReadyToInstal;
                     }
-
-                   
                 }
                 catch (Exception ex)
                 {
@@ -169,8 +167,16 @@ namespace PoeHUD_PluginsUpdater
                         webClient.DownloadProgressChanged +=
                             (s, e) =>
                             {
-                                InstallProgress = "Downloading: " + downloadedCount + "/" + downloadCount + " (" +
-                                                  e.ProgressPercentage + "%)";
+                                if(e.ProgressPercentage != 100)
+                                    InstallProgress = $"Downloading: {downloadedCount}/{downloadCount} ({e.ProgressPercentage}%)";
+                                else
+                                    InstallProgress = "";
+                            };
+
+                        webClient.DownloadDataCompleted +=
+                            (s, e) =>
+                            {
+                                InstallProgress = "";
                             };
 
                         foreach (var downloadFile in FilesToDownload)
@@ -180,7 +186,12 @@ namespace PoeHUD_PluginsUpdater
                                 Directory.CreateDirectory(downloadDir);
 
                             await webClient.DownloadFileTaskAsync(downloadFile.Url, downloadFile.Path);
-                            InstallProgress = "Downloading: " + downloadedCount + "/" + downloadCount;
+
+                            if(downloadedCount != downloadCount)
+                                InstallProgress = "Downloading: " + downloadedCount + "/" + downloadCount;
+                            else
+                                InstallProgress = "";
+
                             downloadedCount++;
                         }
 
@@ -197,6 +208,12 @@ namespace PoeHUD_PluginsUpdater
                         "Plugins Updater: Error while updating plugin: " + PluginName + ", Error: " + ex.Message, 10);
                 }
                 DoAfterUpdate(this);
+
+                if(!IsPoeHUD)
+                {
+                    PoeHUD.Hud.PluginExtension.PluginExtensionPlugin.ApplyUpdateFiles(PluginDirectory);
+                    UpdateState = ePluginUpdateState.NoUpdate;
+                }
             }
             else
             {
@@ -210,5 +227,6 @@ namespace PoeHUD_PluginsUpdater
         public string Name;
         public string Path;
         public string Url;
+        public string Sha;
     }
 }

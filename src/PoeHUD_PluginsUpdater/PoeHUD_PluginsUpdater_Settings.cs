@@ -9,7 +9,7 @@ namespace PoeHUD_PluginsUpdater
     {
         public PoeHUD_PluginsUpdater_Settings()
         {
-            Enable = false;
+            Enable = true;
 
             byte[] data = FromHex("35653761386136303863656464303033343263333435323430306236636434373965323638373630");
             GitToken = Encoding.ASCII.GetString(data);

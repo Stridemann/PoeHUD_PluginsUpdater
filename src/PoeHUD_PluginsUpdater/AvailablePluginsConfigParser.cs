@@ -47,47 +47,42 @@ namespace PoeHUD_PluginsUpdater
                 var line = cfgLines[i];
                 if (line.Replace(" ", "").Length == 0 || line.StartsWith("//") || line.StartsWith("#")) continue;
 
-                TrimName(ref line);
+                line = line.Trim();
 
                 int pluginNameIndex = line.IndexOf(KEYWORD_PLUGINNAME);
                 if (pluginNameIndex != -1)
                 {
                     CheckAddPlugin(AllAvailablePlugins, currentPlugin, i);
                     currentPlugin = new AvailablePlugin();
-                    currentPlugin.PluginName = line.Substring(pluginNameIndex + KEYWORD_PLUGINNAME.Length);
-                    TrimName(ref currentPlugin.PluginName);
+                    currentPlugin.PluginName = line.Substring(pluginNameIndex + KEYWORD_PLUGINNAME.Length).Trim();
                     continue;
                 }
 
                 int gitNameIndex = line.IndexOf(KEYWORD_GITNAME);
                 if (gitNameIndex != -1)
                 {
-                    currentPlugin.GitName = line.Substring(gitNameIndex + KEYWORD_GITNAME.Length);
-                    TrimName(ref currentPlugin.GitName);
+                    currentPlugin.GitName = line.Substring(gitNameIndex + KEYWORD_GITNAME.Length).Trim();
                     continue;
                 }
 
                 int gitOwnerIndex = line.IndexOf(KEYWORD_GITOWNER);
                 if (gitOwnerIndex != -1)
                 {
-                    currentPlugin.GitOwner = line.Substring(gitOwnerIndex + KEYWORD_GITOWNER.Length);
-                    TrimName(ref currentPlugin.GitOwner);
+                    currentPlugin.GitOwner = line.Substring(gitOwnerIndex + KEYWORD_GITOWNER.Length).Trim();
                     continue;
                 }
 
                 int gitConfigUrlIndex = line.IndexOf(KEYWORD_GITURL);
                 if (gitConfigUrlIndex != -1)
                 {
-                    currentPlugin.GitConfigURL = line.Substring(gitConfigUrlIndex + KEYWORD_GITURL.Length);
-                    TrimName(ref currentPlugin.GitConfigURL);
+                    currentPlugin.GitConfigURL = line.Substring(gitConfigUrlIndex + KEYWORD_GITURL.Length).Trim();
                     continue;
                 }
 
                 int descriptionlIndex = line.IndexOf(KEYWORD_DESCRIPTION);
                 if (descriptionlIndex != -1)
                 {
-                    currentPlugin.Description = line.Substring(descriptionlIndex + KEYWORD_DESCRIPTION.Length);
-                    TrimName(ref currentPlugin.Description);
+                    currentPlugin.Description = line.Substring(descriptionlIndex + KEYWORD_DESCRIPTION.Length).Trim();
                     continue;
                 }
             }
@@ -126,12 +121,6 @@ namespace PoeHUD_PluginsUpdater
                     AllAvailablePlugins.Add(currentPlugin);
                 }
             }
-        }
-
-        private static void TrimName(ref string name)
-        {
-            name = name.TrimEnd(' ');
-            name = name.TrimStart(' ');
         }
     }
 }

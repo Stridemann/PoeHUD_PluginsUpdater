@@ -19,6 +19,9 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using Gma.System.MouseKeyHook;
+using ImGuiNET;
+using ImGuiVector2 = System.Numerics.Vector2;
+using ImGuiVector4 = System.Numerics.Vector4;
 
 namespace PoeHUD_PluginsUpdater
 {
@@ -29,12 +32,13 @@ namespace PoeHUD_PluginsUpdater
         public PoeHUD_PluginsUpdater()
         {
             PluginName = "PluginsUpdater";
+            CanPluginBeEnabledInOptions = false;
         }
         private const float WindowWidth = 700;
 
         public const string VersionFileName = "%PluginVersion.txt";
         public const string UpdateTempDir = "%PluginUpdate%";//Do not change this value. Otherwice this value in PoeHUD should be also changed.
-
+        private const string PoehudHashFile = "Updator_PoeHUDHash";
         private string[] PoeHUDBranches = new string[] { "x64", "Garena_x64" };
 
 
@@ -62,17 +66,39 @@ namespace PoeHUD_PluginsUpdater
 
         private GitHubClient gitClient;
 
-        public override void Initialise()
+
+        private bool InitializeOnce;
+        public override void OnPluginSelectedInMenu()
         {
+            Settings.Enable = true;
+            if (InitializeOnce) return;
+            InitializeOnce = true;
+
             gitClient = new GitHubClient(new ProductHeaderValue("PoeHUDPluginsUpdater"));
 
             UGraphics = Graphics;
-            Settings.Enable.Value = false; //OpenOrClose();
+            Settings.Enable.Value = true; //OpenOrClose();
             AllAvailablePlugins = AvailablePluginsConfigParser.Parse(PluginDirectory);
 
             MenuPlugin.KeyboardMouseEvents.MouseDownExt += KeyboardMouseEvents_MouseDownExt;
             MenuPlugin.KeyboardMouseEvents.MouseUpExt += KeyboardMouseEvents_MouseUpExt;
             MenuPlugin.KeyboardMouseEvents.MouseMoveExt += KeyboardMouseEvents_MouseMove;
+
+
+            AllPlugins = new List<PluginToUpdate>();
+
+            foreach (var plugin in PluginExtensionPlugin.Plugins)
+            {
+                AddPlugin(plugin.PluginName, plugin.PluginDirectory);
+            }
+
+            CheckAddPluginsByConfig();
+
+            AllPlugins = AllPlugins.OrderByDescending(x => x.UpdateVariant).ToList();
+
+            AddPoeHudPlugin();
+
+            CheckUpdates();
         }
 
         private void KeyboardMouseEvents_MouseMove(object sender, MouseEventExtArgs e)
@@ -137,32 +163,7 @@ namespace PoeHUD_PluginsUpdater
             }
         }
 
-        private void OpenOrClose()
-        {
-            if (!Settings.Enable) return;
 
-            //RootButton.Instance.CloseRootMenu();
-
-            if (InitOnce) return;
-            InitOnce = true;
-
-            AllPlugins = new List<PluginToUpdate>();
-
-            foreach (var plugin in PluginExtensionPlugin.Plugins)
-            {
-                AddPlugin(plugin.PluginName, plugin.PluginDirectory);
-            }
-
-            CheckAddPluginsByConfig();
-
-            AllPlugins = AllPlugins.OrderByDescending(x => x.UpdateVariant).ToList();
-
-            AddPoeHudPlugin();
-
-            CheckUpdates();
-
-            //AllAvailablePlugins = AvailablePluginsConfigParser.Parse(PluginDirectory);
-        }
 
         private void AddPoeHudPlugin()
         {
@@ -236,6 +237,12 @@ namespace PoeHUD_PluginsUpdater
                 LogError("PoeHUD Updater: Can't start PoeUpdater.exe with admin rights", 10);
                 //If you are here the user clicked declined to grant admin privileges (or he's not administrator)
             }
+
+            if (newExe != null)
+            {
+                var hudHashFilePath = Path.Combine(poehudExeLocation, PoehudHashFile);
+                File.WriteAllText(hudHashFilePath, newExe.Sha);
+            }
         }
 
 
@@ -281,7 +288,7 @@ namespace PoeHUD_PluginsUpdater
         {
             gitClient.Credentials = new Credentials(Settings.GitToken);
 
-            foreach (var plugin in AllPlugins)
+            foreach (var plugin in AllPlugins.ToList())
             {
                 await CheckPluginUpdate(plugin);
             }
@@ -448,15 +455,15 @@ namespace PoeHUD_PluginsUpdater
 
                     if (plugin.IsPoeHUD && contentEntity.Name.Contains("PoeHUD.exe"))
                     {
+                        var hudHashFile = Path.Combine(plugin.PluginDirectory + @"\", PoehudHashFile);//plugin.PoehudExeRealName
 
-                        var localPath = Path.Combine(plugin.PluginDirectory + @"\", plugin.PoehudExeRealName);
-                        var poeHudFInfo = new FileInfo(localPath);
-
-                        if (poeHudFInfo.Exists)
+                        download = true;
+                        if (File.Exists(hudHashFile))
                         {
-                            if (poeHudFInfo.Length != contentEntity.Size)
+                            var hashStr = File.ReadAllText(hudHashFile);
+                            if (contentEntity.Sha == hashStr)
                             {
-                                download = true;
+                                download = false;
                             }
                         }
                     }
@@ -464,7 +471,7 @@ namespace PoeHUD_PluginsUpdater
                     {
                         var localPath = Path.Combine(plugin.PluginDirectory + @"\" + path, contentEntity.Name);
                         if (plugin.IsPoeHUD && path.Contains("Release"))
-                            localPath = Path.Combine(plugin.PluginDirectory + @"\" + path.Remove(path.IndexOf("Release"),7), contentEntity.Name);
+                            localPath = Path.Combine(plugin.PluginDirectory + @"\" + path.Remove(path.IndexOf("Release"), 7), contentEntity.Name);
 
                         if (File.Exists(localPath))
                         {
@@ -491,7 +498,8 @@ namespace PoeHUD_PluginsUpdater
                         {
                             Name = contentEntity.Name,
                             Url = contentEntity.DownloadUrl.AbsoluteUri,
-                            Path = updateFilePath
+                            Path = updateFilePath,
+                            Sha = contentEntity.Sha
                         });
                     }
                 }
@@ -507,132 +515,220 @@ namespace PoeHUD_PluginsUpdater
             }
         }
 
-        public override void Render()
+        public override void InitializeSettingsMenu() { }
+
+        private int UniqIdCounter;
+        private string UniqId => $"##{UniqIdCounter++}";
+
+        private string testText = "";
+        public override void DrawSettingsMenu()
         {
-            OpenOrClose();
-            if (WinApi.IsKeyDown(Keys.Space))
-                Settings.Enable.Value = false;
-
-            var drawPosX = Settings.WindowPosX;
-            var drawPosY = Settings.WindowPosY;
-
-            DrawRect = new RectangleF(drawPosX, drawPosY, WindowWidth + 10, WindowHeight + 55);
-            UpdaterUtils.DrawFrameBox(DrawRect, 2, Color.Black, Color.White);
-
-            #region Close Button
-            var closeRect = DrawRect;
-            closeRect.X += closeRect.Width - 25;
-            closeRect.Y += 5;
-            closeRect.Width = 20;
-            closeRect.Height = 20;
-
-            if (UpdaterUtils.DrawButton(closeRect, 1, new Color(20, 20, 20, 255), Color.White))
-            {
-                Settings.Enable.Value = false;
-            }
-            Graphics.DrawText("X", 20, new Vector2(closeRect.X + 4, closeRect.Y - 2), Color.White);
-            #endregion
+            UniqIdCounter = 0;
 
             #region Tabs buttons
-            var installedButtonRect = new RectangleF(DrawRect.X + 5, DrawRect.Y + 5, 120, 25);
+            ImGuiNative.igGetContentRegionAvail(out var newcontentRegionArea);
+            ImGui.BeginChild($"{UniqId}", new ImGuiVector2(newcontentRegionArea.X, 40), true, WindowFlags.Default);
 
-            if (UpdaterUtils.DrawTextButton(installedButtonRect, "Installed Plugins", 15, 1, CurrentWindowTab == UWindowTab.InstalledPlugins ? Color.Gray : new Color(60, 60, 60, 255),
-                Color.White, Color.White))
+            if (ImGuiExtension.Button($"Installed Plugins{UniqId}"))
                 CurrentWindowTab = UWindowTab.InstalledPlugins;
-
-            installedButtonRect.X += installedButtonRect.Width + 10;
-
-            if (UpdaterUtils.DrawTextButton(installedButtonRect, "Available Plugins", 15, 1, CurrentWindowTab == UWindowTab.AvailablePlugins ? Color.Gray : new Color(60, 60, 60, 255),
-                 Color.White, Color.White))
+            ImGui.SameLine();
+            if (ImGuiExtension.Button($"Available Plugins{UniqId}"))
                 CurrentWindowTab = UWindowTab.AvailablePlugins;
-
+            ImGui.EndChild();
             #endregion
 
-
-            var subWindowRect = new RectangleF(drawPosX + 5, drawPosY + 30, WindowWidth, WindowHeight);
-            UpdaterUtils.DrawFrameBox(subWindowRect, 2, Color.Black, Color.White);
+            var style = ImGui.GetStyle();
+            var textColorBack = style.GetColor(ColorTarget.Text);
 
             if (CurrentWindowTab == UWindowTab.InstalledPlugins)
-                DrawWindow_InstalledPlugins(subWindowRect.X, subWindowRect.Y, subWindowRect.Width);
-            else if (CurrentWindowTab == UWindowTab.AvailablePlugins)
-                DrawWindow_AllPlugins(subWindowRect.X, subWindowRect.Y, subWindowRect.Width);
-
-            Graphics.DrawText("Notes: Move window by mouse drag. Close window key: Space", 15,
-                new Vector2(subWindowRect.X + 10, subWindowRect.Y + subWindowRect.Height + 5), Color.Gray, FontDrawFlags.Left);
-
-
-            bMouse_Click = false;
-        }
-
-        private void DrawWindow_AllPlugins(float drawPosX, float drawPosY, float width)
-        {
-            drawPosY += 5;
-
-            if (AllAvailablePlugins == null)
             {
-                Graphics.DrawText($"File {AvailablePluginsConfigParser.AvailablePluginsConfigFile} is not found!", 20, new Vector2(drawPosX + 15, drawPosY + 5), Color.Red);
-                WindowHeight = 40;
-                return;
-            }
+                #region InstalledPlugins
+                ImGuiNative.igGetContentRegionAvail(out newcontentRegionArea);
+                ImGui.BeginChild($"{UniqId}", new ImGuiVector2(newcontentRegionArea.X, newcontentRegionArea.Y), true, WindowFlags.Default);
+            
+                ImGui.Columns(4, UniqId, true);
+                ImGui.SetColumnWidth(0, 180);
+                ImGui.SetColumnOffset(2, newcontentRegionArea.X - 400);
+                ImGui.SetColumnOffset(3, newcontentRegionArea.X - 200);
 
-            WindowHeight = AllAvailablePlugins.Count * 45 + 5;
+                ImGui.Text($"Plugin name");
+                ImGui.NextColumn();
+                ImGui.Text($"Local version");
+                ImGui.NextColumn();
+                ImGui.Text($"Remote version");
+                ImGui.NextColumn();
+                ImGui.Text($"State");
 
-            foreach (var availPlug in AllAvailablePlugins)
-            {
-                var pluginFrame = new RectangleF(drawPosX + 5, drawPosY, width - 10, 40);
-                Graphics.DrawBox(pluginFrame, Color.Black);
-                Graphics.DrawFrame(pluginFrame, 2, Color.Gray);
-
-                Graphics.DrawText(availPlug.PluginName, 20, new Vector2(pluginFrame.X + 5, pluginFrame.Y));
-                Graphics.DrawText($"Owner: {availPlug.GitOwner}", 14, new Vector2(pluginFrame.X + 300, pluginFrame.Y + 3), Color.Gray);
-
-                Graphics.DrawText(availPlug.Description, 14, new Vector2(pluginFrame.X + 10, pluginFrame.Y + 23), Color.Gray);
-
-
-                var buttonRect = new RectangleF((pluginFrame.X + pluginFrame.Width) - 240, drawPosY + 4, 100, 30);
-
-                if (UpdaterUtils.DrawTextButton(buttonRect, "Open URL", 20, 1, new Color(50, 50, 50, 220), Color.White, Color.Yellow))
+                ImGui.Separator();
+                ImGui.NextColumn();
+                
+                foreach (var plug in AllPlugins.ToList())
                 {
-                    System.Diagnostics.Process.Start($"https://github.com/{availPlug.GitOwner}/{availPlug.GitName}");
-                }
+                    ImGui.Text(plug.PluginName);
+                    ImGui.NextColumn();
 
-                buttonRect.X += 105;
-                buttonRect.Width += 30;
+                    style.SetColor(ColorTarget.Text, new ImGuiVector4(0.5f, 0.5f, 0.5f, 1));
 
-                if (availPlug.bOwned)
-                {
-                    Graphics.DrawText("Owned", 20, buttonRect.Center, Color.Green, FontDrawFlags.VerticalCenter | FontDrawFlags.Center);
-                }
-                else if (availPlug.InstalledPlugin != null)
-                {
-                    if (availPlug.InstalledPlugin.InstallProgress.Length > 0)
+                    ImGui.Text(plug.LocalVersion + (plug.LocalTag.Length > 0 ? $" ({plug.LocalTag})" : ""));
+                    ImGui.NextColumn();
+
+                    if (plug.UpdateState == ePluginUpdateState.HasUpdate)
+                        style.SetColor(ColorTarget.Text, new ImGuiVector4(0, 1, 0, 1));
+                    else if (plug.UpdateState == ePluginUpdateState.HasLowerUpdate)
+                        style.SetColor(ColorTarget.Text, new ImGuiVector4(1, 0, 0, 1));
+
+                    ImGui.Text(plug.RemoteVersion + (plug.RemoteTag.Length > 0 ? $" ({plug.RemoteTag})" : ""));
+                    style.SetColor(ColorTarget.Text, textColorBack);
+
+                    ImGui.NextColumn();
+
+                    if (!string.IsNullOrEmpty(plug.InstallProgress))
                     {
-                        Graphics.DrawText(availPlug.InstalledPlugin.InstallProgress, 15, buttonRect.Center, Color.Green, FontDrawFlags.VerticalCenter | FontDrawFlags.Center);
+                        ImGui.Text($"{plug.InstallProgress}");
                     }
-                    else if (availPlug.bInstaled)
+                    else if (!plug.bHasGitConfig)
                     {
-                        Graphics.DrawText("Restart PoeHUD", 20, buttonRect.Center, Color.Green, FontDrawFlags.VerticalCenter | FontDrawFlags.Center);
+                        ImGui.Text($"No git config");
+                    }
+                    else if (plug.UpdateState == ePluginUpdateState.HasUpdate ||
+                             plug.UpdateState == ePluginUpdateState.HasLowerUpdate ||
+                             plug.UpdateState == ePluginUpdateState.UnknownUpdate)
+                    {
+
+                        string buttonLabel = "";
+                        if (plug.UpdateState == ePluginUpdateState.UnknownUpdate)
+                            buttonLabel = "Unknown update";
+                        else if (plug.UpdateState == ePluginUpdateState.HasLowerUpdate)
+                            buttonLabel = "Update";
+                        else
+                            buttonLabel = "Update";
+
+                        if (ImGui.SmallButton($"{buttonLabel}{UniqId}"))
+                        {
+                            plug.UpdatePlugin();
+                        }
+                    }
+                    else if (plug.UpdateState == ePluginUpdateState.NoUpdate)
+                    {
+                        style.SetColor(ColorTarget.Text, new ImGuiVector4(0, 1, 0, 1));
+                        ImGui.Text($"Updated");
+                      
+                    }
+                    else if (plug.UpdateState == ePluginUpdateState.ReadyToInstal)
+                    {
+                        style.SetColor(ColorTarget.Text, new ImGuiVector4(1, 1, 0, 1));
+                        ImGui.Text($"Restart PoeHUD");
                     }
                     else
                     {
-                        Graphics.DrawText("Downloading...", 20, buttonRect.Center, Color.Yellow, FontDrawFlags.VerticalCenter | FontDrawFlags.Center);
+                        ImGui.Text($"Wrong git config");
                     }
+
+                    style.SetColor(ColorTarget.Text, textColorBack);
+
+                    ImGui.NextColumn();
+                    ImGui.Separator();
+
+                    if (plug.IsPoeHUD)
+                    {
+                        ImGui.NextColumn();
+                        ImGui.Text($"");
+                        ImGui.NextColumn();
+                        ImGui.NextColumn();
+                        ImGui.NextColumn();
+                        ImGui.Separator();
+                    }
+
                 }
-                else if (UpdaterUtils.DrawTextButton(buttonRect, "Install", 20, 1, new Color(50, 50, 50, 220), Color.White, Color.Yellow))
+
+                ImGui.EndChild();
+                #endregion
+            }
+            else if (CurrentWindowTab == UWindowTab.AvailablePlugins)
+            {
+
+                #region AvailablePlugins
+
+                if (AllAvailablePlugins == null)
                 {
-                    var newPluginDir = Path.Combine(@"plugins\", availPlug.PluginName);
-                    Directory.CreateDirectory(newPluginDir);
-
-                    var newConfigPath = Path.Combine(newPluginDir, GitConfigParser.ConfigFileName);
-
-                    DownloadConfigForPlugin(availPlug, newConfigPath);
+                    ImGui.Text($"File {AvailablePluginsConfigParser.AvailablePluginsConfigFile} is not found!{UniqId}");
+                    WindowHeight = 40;
+                    return;
                 }
 
-                drawPosY += 45;
+                ImGuiNative.igGetContentRegionAvail(out newcontentRegionArea);
+                ImGui.BeginChild($"{UniqId}", new ImGuiVector2(newcontentRegionArea.X, newcontentRegionArea.Y), true, WindowFlags.Default);
+                
+                ImGui.Columns(4, UniqId, true);
+                ImGui.SetColumnWidth(0, 200);
+                ImGui.SetColumnWidth(2, 80);
+                ImGui.SetColumnOffset(2, newcontentRegionArea.X - 200);
+                ImGui.Text($"Plugin name");
+                ImGui.NextColumn();
+                ImGui.Text($"Description");
+                ImGui.NextColumn();
+                ImGui.Text($"URL");
+                ImGui.NextColumn();
+                ImGui.Text($"State");
+                ImGui.Separator();
+                ImGui.NextColumn();
+
+                foreach (var availPlug in AllAvailablePlugins.ToList())
+                {
+                    ImGui.Text($"{availPlug.PluginName}");
+                    ImGui.NextColumn();
+                    ImGui.Text($"{availPlug.Description}");
+                    ImGui.NextColumn();
+
+                    if (ImGui.Button($"Open URL{UniqId}"))
+                    {
+                        System.Diagnostics.Process.Start($"https://github.com/{availPlug.GitOwner}/{availPlug.GitName}");
+                    }
+                    ImGui.NextColumn();
+
+                    if (availPlug.bOwned)
+                    {
+                        style.SetColor(ColorTarget.Text, new ImGuiVector4(0, 1, 0, 1));
+                        ImGui.Text($"Owned");
+                    }
+                    else if (availPlug.InstalledPlugin != null)
+                    {
+                        if (availPlug.InstalledPlugin.InstallProgress.Length > 0)
+                        {
+                            ImGui.Text($"{availPlug.InstalledPlugin.InstallProgress}");
+                        }
+                        else if (availPlug.bInstaled)
+                        {
+                            style.SetColor(ColorTarget.Text, new ImGuiVector4(1, 1, 0, 1));
+                            ImGui.Text($"Restart PoeHUD");
+                        }
+                        else
+                        {
+                            ImGui.Text($"Downloading...");
+                        }
+                    }
+                    else if (ImGui.Button($"Install{UniqId}"))
+                    {
+                        var newPluginDir = Path.Combine("plugins", availPlug.PluginName);
+                        Directory.CreateDirectory(newPluginDir);
+
+                        var newConfigPath = Path.Combine(newPluginDir, GitConfigParser.ConfigFileName);
+                        DownloadConfigForPlugin(availPlug, newConfigPath, newPluginDir);
+                    }
+                    style.SetColor(ColorTarget.Text, textColorBack);
+
+                    ImGui.NextColumn();
+                    ImGui.Separator();
+                }
+
+                ImGui.EndChild();
+
+                #endregion
+
             }
         }
 
-        private async Task DownloadConfigForPlugin(AvailablePlugin plugin, string configPath)
+        private async Task DownloadConfigForPlugin(AvailablePlugin plugin, string configPath, string pluginDir)
         {
             if (!plugin.GitConfigURL.Contains("https://") && !plugin.GitConfigURL.Contains("$"))
             {
@@ -645,11 +741,12 @@ namespace PoeHUD_PluginsUpdater
                 using (var webClient = new WebClient())
                 {
                     await webClient.DownloadFileTaskAsync(plugin.GitConfigURL, configPath);
-
                 }
             }
             else
             {
+                Directory.CreateDirectory(Path.GetDirectoryName(configPath));
+              
                 File.WriteAllLines(configPath, plugin.GitConfigURL.Split('$'));
             }
 
@@ -662,149 +759,9 @@ namespace PoeHUD_PluginsUpdater
 
                 result.UpdatePlugin();
                 plugin.bInstaled = true;
+                LogMessage(pluginDir, 10);
+                PoeHUD.Hud.PluginExtension.PluginExtensionPlugin.LoadPluginFromDirectory(pluginDir);
             }
-        }
-
-        private void DrawWindow_InstalledPlugins(float drawPosX, float drawPosY, float width)
-        {
-            WindowHeight = AllPlugins.Count * 30 + 35;
-
-            drawPosY += 5;
-
-            var allPlugins = AllPlugins.ToList();
-
-            if(allPlugins.Count > 0 && allPlugins[0].IsPoeHUD)
-            {
-                drawPosY = DrawPlugin(drawPosX, drawPosY, width, allPlugins[0]);
-            }
-
-            Graphics.DrawText("Plugin name", 15, new Vector2(drawPosX + 15, drawPosY + 5), Color.Gray);
-            Graphics.DrawText("Local version", 15, new Vector2(drawPosX + 200, drawPosY + 5), Color.Gray);
-            Graphics.DrawText("Remote version", 15, new Vector2(drawPosX + 400, drawPosY + 5), Color.Gray);
-
-            drawPosY += 30;
-
-       
-            foreach (var plug in allPlugins)
-            {
-                if (plug.IsPoeHUD) continue;
-                drawPosY = DrawPlugin(drawPosX, drawPosY, width, plug);
-            }
-
-        }
-
-        private float DrawPlugin(float drawPosX, float drawPosY, float width, PluginToUpdate plug)
-        {
-            var pluginFrame = new RectangleF(drawPosX + 5, drawPosY, width - 10, 26);
-
-            int frameBorderWidth = 2;
-            if (plug.IsPoeHUD)
-            {
-                pluginFrame.Height += 50;
-                frameBorderWidth = 4;
-            }
-
-            Graphics.DrawBox(pluginFrame, Color.Black);
-            Graphics.DrawFrame(pluginFrame, frameBorderWidth, Color.Gray);
-
-            pluginFrame.X += 10;
-
-            Graphics.DrawText(plug.PluginName, 20, new Vector2(pluginFrame.X, pluginFrame.Y));
-            Graphics.DrawText(plug.LocalVersion + (plug.LocalTag.Length > 0 ? $" ({plug.LocalTag})" : ""), 15, new Vector2(pluginFrame.X + 200, pluginFrame.Y + 5), Color.Gray);
-
-            var color = Color.Gray;
-
-            if (plug.UpdateState == ePluginUpdateState.HasUpdate)
-                color = Color.Green;
-            else if (plug.UpdateState == ePluginUpdateState.HasLowerUpdate)
-                color = Color.Red;
-
-            Graphics.DrawText(plug.RemoteVersion + (plug.RemoteTag.Length > 0 ? $" ({plug.RemoteTag})" : ""), 15, new Vector2(pluginFrame.X + 400, pluginFrame.Y + 5), color);
-
-
-            var buttonRect = new RectangleF(pluginFrame.X + pluginFrame.Width - 75, drawPosY + 4, 60, 20);
-            var buttonTextPos = buttonRect.TopRight;
-            buttonTextPos.X -= 5;
-            buttonTextPos.Y += 2;
-
-            if (!string.IsNullOrEmpty(plug.InstallProgress))
-            {
-                Graphics.DrawText(plug.InstallProgress, 15, buttonTextPos, Color.White, FontDrawFlags.Right);
-            }
-            else if (!plug.bHasGitConfig)
-            {
-                Graphics.DrawText("No git config", 15, buttonTextPos, Color.Gray, FontDrawFlags.Right);
-            }
-            else if (plug.UpdateState == ePluginUpdateState.HasUpdate ||
-                     plug.UpdateState == ePluginUpdateState.HasLowerUpdate ||
-                     plug.UpdateState == ePluginUpdateState.UnknownUpdate)
-            {
-                if (UpdaterUtils.DrawButton(buttonRect, 1, new Color(50, 50, 50, 220), Color.White))
-                {
-                    plug.UpdatePlugin();
-                }
-                if (plug.UpdateState == ePluginUpdateState.UnknownUpdate)
-                    Graphics.DrawText("Unknown update", 15, buttonTextPos, Color.Gray, FontDrawFlags.Right);
-                else if (plug.UpdateState == ePluginUpdateState.HasLowerUpdate)
-                    Graphics.DrawText("Update", 15, buttonTextPos, Color.Red, FontDrawFlags.Right);
-                else
-                    Graphics.DrawText("Update", 15, buttonTextPos, Color.Yellow, FontDrawFlags.Right);
-            }
-            else if (plug.UpdateState == ePluginUpdateState.NoUpdate)
-            {
-                Graphics.DrawText("Updated", 15, buttonTextPos, Color.Green, FontDrawFlags.Right);
-            }
-            else if (plug.UpdateState == ePluginUpdateState.ReadyToInstal)
-            {
-                Graphics.DrawText("(Restart PoeHUD)", 15, buttonTextPos, Color.Green, FontDrawFlags.Right);
-            }
-            else
-            {
-                Graphics.DrawText("Wrong git config", 15, buttonTextPos, Color.Gray, FontDrawFlags.Right);
-            }
-
-
-            if (plug.IsPoeHUD)
-            {
-                if (string.IsNullOrEmpty(plug.InstallProgress))
-                {
-                    var selectBranchRect = new RectangleF(pluginFrame.X + 10, drawPosY + 30, 150, 20);
-                    selectBranchRect.Y += 2;
-                    Graphics.DrawText("Select PoeHUD branch: ", 15, selectBranchRect.TopLeft);
-                    selectBranchRect.Y -= 2;
-
-                    selectBranchRect.X += 150;
-
-                    for (int i = 0; i < PoeHUDBranches.Length; i++)
-                    {
-                        bool selected = Settings.PoeHUDBranch == PoeHUDBranches[i];
-
-                        var selColor = selected ? Color.White : Color.Gray;
-
-                        if (UpdaterUtils.DrawTextButton(selectBranchRect, PoeHUDBranches[i], 15, selected ? 3 : 1, new Color(50, 50, 50, 220), selColor, selColor))
-                        {
-                            if (Settings.PoeHUDBranch != PoeHUDBranches[i])
-                            {
-                                Settings.PoeHUDBranch = PoeHUDBranches[i];
-                                plug.InstallProgress = "Restart PoeHUD. It will check updates from " + Settings.PoeHUDBranch + " branch.";
-                                plug.RemoteVersion = "";
-                                plug.LocalVersion = "";
-                            }
-                        }
-                        selectBranchRect.X += 170;
-                    }
-
-                    selectBranchRect = new RectangleF(pluginFrame.X + 10, drawPosY + 55, 150, 20);
-
-                    Graphics.DrawText("Note: PoeHUD will be automatically restarted.", 15, selectBranchRect.TopLeft, Color.Gray);
-                }
-
-                drawPosY += 55;
-                WindowHeight += 55;
-            }
-
-            drawPosY += 30;
-            return drawPosY;
         }
 
         public enum UWindowTab

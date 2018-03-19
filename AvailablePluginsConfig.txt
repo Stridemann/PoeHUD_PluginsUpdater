@@ -14,7 +14,7 @@ Plugin:BestiaryCraftPlugin
 GitOwner:Stridemann
 GitName:PoeHUD_BestiaryCraftPlugin
 ConfigURL:https://raw.githubusercontent.com/Stridemann/PoeHUD_BestiaryCraftPlugin/master/GitUpdateConfig.txt
-Desctription: Bestiary: Shows what we can craft and can the monster be captured
+Desctription: Shows what we can craft from monster and can it be captured
 
 Plugin:Pickit
 GitOwner:DetectiveSquirrel
