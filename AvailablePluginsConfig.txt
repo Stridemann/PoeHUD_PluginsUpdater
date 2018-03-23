@@ -22,12 +22,6 @@ GitName:Pickit
 ConfigURL:https://raw.githubusercontent.com/DetectiveSquirrel/Pickit/master/GitUpdateConfig.txt
 Desctription: Auto Item Pick Plugin
 
-Plugin:poehudDebugPlugin
-GitOwner:Zaafar
-GitName:poehudDebugPlugin
-ConfigURL:https://raw.githubusercontent.com/zaafar/poehudDebugPlugin/master/GitUpdateConfig.txt
-Desctription: Debugging Poe Game UI Elements
-
 Plugin:AdvancedUberLabLayout
 GitOwner:Stridemann
 GitName:PoeHUD_AdvancedUberLabLayout
@@ -92,7 +86,7 @@ Plugin:MapsExchange
 GitOwner:zaafar
 GitName:poehud_mapsexchange
 ConfigURL:https://raw.githubusercontent.com/zaafar/poehud_mapsexchange/master/GitUpdateConfig.txt
-Desctription: Higlighting maps with same name in stash for vendor exchange.
+Desctription: Higlighting maps with same name in stash for vendor exchange. Show penalty, shaper/elder, uncompleted.
 
 Plugin:FullRareSetManager
 GitOwner:Stridemann
@@ -117,3 +111,9 @@ GitOwner:Stridemann
 GitName:MinionHealthPlugin
 ConfigURL:https://raw.githubusercontent.com/Stridemann/MinionHealthPlugin/master/GitUpdateConfig.txt
 Desctription: For Raise Spectre, Raise Zombie and Flesh Offering
+
+Plugin:PoeHUD Debug Plugin
+GitOwner:DetectiveSquirrel
+GitName:PoeHUD-Developer
+ConfigURL:https://raw.githubusercontent.com/DetectiveSquirrel/PoeHUD-Developer/master/GitUpdateConfig.txt
+Desctription: Debugging information (UI, entities, etc) from PoeHUD

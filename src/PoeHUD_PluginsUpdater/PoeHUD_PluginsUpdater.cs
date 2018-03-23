@@ -38,9 +38,8 @@ namespace PoeHUD_PluginsUpdater
 
         public const string VersionFileName = "%PluginVersion.txt";
         public const string UpdateTempDir = "%PluginUpdate%";//Do not change this value. Otherwice this value in PoeHUD should be also changed.
-        private const string PoehudHashFile = "Updator_PoeHUDHash";
         private string[] PoeHUDBranches = new string[] { "x64", "Garena_x64" };
-
+        private const string PoehudHashFile = "Updator_PoeHUDHash";
 
         private List<PluginToUpdate> AllPlugins = new List<PluginToUpdate>();
 
@@ -223,17 +222,15 @@ namespace PoeHUD_PluginsUpdater
                 return;
             }
 
+            string exeHash = "";
             if (newExe != null)
-            {
-                var hudHashFilePath = Path.Combine(poehudExeLocation, PoehudHashFile);
-                File.WriteAllText(hudHashFilePath, newExe.Sha);
-            }
+                exeHash = newExe.Sha;
 
             var psi = new ProcessStartInfo();
             psi.CreateNoWindow = true; //This hides the dos-style black window that the command prompt usually shows
             psi.FileName = @"cmd.exe";
             psi.Verb = "runas"; //this is what actually runs the command as administrator
-            psi.Arguments = $"/C {updaterFilePath} {poeHudUpdateFilesDir} {poehudExeLocation} {poeProcess.Id} {Path.Combine(poehudExeLocation, exeToStart)} {exeToDelete}";
+            psi.Arguments = $"/C {updaterFilePath} {poeHudUpdateFilesDir} {poehudExeLocation} {poeProcess.Id} {Path.Combine(poehudExeLocation, exeToStart)} {exeToDelete} {exeHash}";
             try
             {
                 var process = new Process();
@@ -686,7 +683,6 @@ namespace PoeHUD_PluginsUpdater
             }
             else if (CurrentWindowTab == UWindowTab.AvailablePlugins)
             {
-
                 #region AvailablePlugins
 
                 if (AllAvailablePlugins == null)
@@ -764,7 +760,6 @@ namespace PoeHUD_PluginsUpdater
                 ImGui.EndChild();
 
                 #endregion
-
             }
         }
 
@@ -799,7 +794,6 @@ namespace PoeHUD_PluginsUpdater
 
                 result.UpdatePlugin();
                 plugin.bInstaled = true;
-                LogMessage(pluginDir, 10);
                 PoeHUD.Hud.PluginExtension.PluginExtensionPlugin.LoadPluginFromDirectory(pluginDir);
             }
         }

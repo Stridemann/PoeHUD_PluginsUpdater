@@ -8,10 +8,11 @@ namespace PoeHUDUpdater
     public class PoeHUDUpdater
     {
         public const string UpdateBackupDir = "%Backup%";
+        private const string PoehudHashFile = "Updator_PoeHUDHash";
 
         public static void Main(string[] args)
         {
-            if (args.Length != 5)
+            if (args.Length != 6)
             {
                 Console.WriteLine("This program should be launched by PoeHUD_PluginsUpdater. Exiting...");
                 Console.ReadLine();
@@ -23,6 +24,7 @@ namespace PoeHUDUpdater
             var poeHudProcessId = int.Parse(args[2]);
             var exeToStart = args[3];
             var exeToDelete = args[4];
+            var exeHash = args[5];
 
 
             Process poeProcess;
@@ -68,6 +70,13 @@ namespace PoeHUDUpdater
             {
                 Console.WriteLine("PoeHUD Updater: some files wasn't moved or replaced while update. You can move them manually: " + updateDirInfo.FullName, 20);
             }
+
+            if (!string.IsNullOrEmpty(exeHash))
+            {
+                var hudHashFilePath = Path.Combine(poehudDir, PoehudHashFile);
+                File.WriteAllText(hudHashFilePath, exeHash);
+            }
+
 
             Console.WriteLine();
             Console.WriteLine("Update completed!");
