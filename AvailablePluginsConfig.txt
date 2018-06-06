@@ -112,6 +112,18 @@ GitName:MinionHealthPlugin
 ConfigURL:https://raw.githubusercontent.com/Stridemann/MinionHealthPlugin/master/GitUpdateConfig.txt
 Desctription: For Raise Spectre, Raise Zombie and Flesh Offering
 
+Plugin:Get-Chaos-Value
+GitOwner:DetectiveSquirrel
+GitName:Get-Chaos-Value
+ConfigURL:https://raw.githubusercontent.com/DetectiveSquirrel/Get-Chaos-Value/master/GitUpdateConfig.txt
+Desctription: Get-Chaos-Value
+
+Plugin:BasicFlaskRoutine
+GitOwner:sychotixdev
+GitName:BasicFlaskRoutine
+ConfigURL:https://raw.githubusercontent.com/sychotixdev/BasicFlaskRoutine/master/GitUpdateConfig.txt
+Desctription: Basic flask routine
+
 Plugin:PoeHUD Debug Plugin
 GitOwner:DetectiveSquirrel
 GitName:PoeHUD-Developer
