@@ -1,3 +1,9 @@
+Plugin:Craftie
+GitOwner:nymann
+GitName:Craftie
+ConfigURL:Owner:nymann$Name:Craftie$Release
+Desctription: Crafting Items only in Currency Stash tab.
+
 Plugin:mineDetonator
 GitOwner:Zaafar
 GitName:mineDetonator
@@ -32,7 +38,7 @@ Plugin:LabyrinthLayout
 GitOwner:DetectiveSquirrel
 GitName:Labyrinth-Layout
 ConfigURL:https://raw.githubusercontent.com/DetectiveSquirrel/Labyrinth-Layout/master/GitUpdateConfig.txt
-Desctription: Load labyrinth route from poelab.com 
+Desctription: Load labyrinth route from poelab.com
 
 Plugin:SithylisQoL
 GitOwner:DetectiveSquirrel
@@ -61,7 +67,7 @@ Desctription: Moving all items from inventory to stash tabs.
 Plugin:MoveToStash	
 GitOwner:k-Sacr	
 GitName:MoveToStash	
-ConfigURL:Owner:k-Sacr$Name:MoveToStash$Repository$Ignore:$src$.gitignore	
+ConfigURL:Owner:k-Sacr$Name:MoveToStash$Repository$Ignore:$src$.gitignore
 Desctription: Moving all items from inventory to stash tabs.
 
 Plugin:InventoryPreview
