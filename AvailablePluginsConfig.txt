@@ -1,3 +1,9 @@
+Plugin:BuffGod
+GitOwner:DetectiveSquirrel
+GitName:Buff-God
+ConfigURL:https://raw.githubusercontent.com/DetectiveSquirrel/Buff-God/master/GitUpdateConfig.txt
+Desctription: Draw Buffs on the screen in a customizable UI
+
 Plugin:Craftie
 GitOwner:nymann
 GitName:Craftie
