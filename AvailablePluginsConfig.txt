@@ -1,8 +1,8 @@
-Plugin:DelveHelper
+Plugin:Delve
 GitOwner:TehCheat
 GitName:Delve
 ConfigURL:https://raw.githubusercontent.com/TehCheat/Delve/master/GitUpdateConfig.txt
-Desctription: When inside the Delve it will draw important chests and show important stuff
+Desctription: When inside the Delve it will draw important chests/stuff
 
 Plugin:BuffGod
 GitOwner:DetectiveSquirrel
